@@ -18,7 +18,7 @@ MACHINE_SINGLE = 3.50            # treat as equivalent for now
 
 CONTACTLESS_DAILY_CAP = 5.65     # NET-only daily cap
 
-st.set_page_config(page_title="Simple Tram Trip Time", layout="centered")
+st.set_page_config(page_title="NET Tram", layout="centered")
 st.markdown("<h1 style='color: green;'>Nottingham Tram NET Trip time</h1>", unsafe_allow_html=True)
 
 # --- network minutes-to-hub tables (minutes to central 'Station' hub) ---
