@@ -8,7 +8,7 @@ st.set_page_config(page_title="NET Tram", layout="centered")
 # --- Top-right icon ---
 colA, colB, colC = st.columns([6, 1, 1])
 with colC:
-    st.image("your_icon.png", width=60)
+    st.image("download.jpeg.jpg", width=60)
     
 st.markdown("<h1 style='color: green;'>Nottingham Tram NET Trip time</h1>", unsafe_allow_html=True)
 
