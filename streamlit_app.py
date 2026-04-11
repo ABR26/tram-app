@@ -316,7 +316,7 @@ if st.button("Calculate trip time"):
 
             st.info(
                 f"Single journey fare: £{single_fare:.2f}\n"
-                f"Charged this journey (after cap): £{charged_now:.2f}\n"
+                f"Charge for this journey (after cap): £{charged_now:.2f}\n"
                 f"Total paid today (NET contactless cap): £{st.session_state.daily_spend:.2f}"
             )
 
