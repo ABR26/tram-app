@@ -278,7 +278,7 @@ if st.button("Calculate trip time"):
                 d2h = NETWORK[dest_line][dest_station]
 
                 travel_minutes = abs(o2h - d2h)
-                journey_minutes = travel_minutes + mean_wait
+                journey_minutes = travel_minutes 
 
                 st.subheader("Result (same line)") 
                 st.markdown("---")
@@ -286,7 +286,7 @@ if st.button("Calculate trip time"):
                 f"Time window: {window} — "
                 f"Frequency: {'no service' if headway is None else f'every {headway} minutes'}"
                 )
-                st.write(f"- Travel time: {pretty_minutes(journey_minutes)}")
+                st.write(f"- Journey time: {pretty_minutes(journey_minutes)}")
                 st.write(f"- {origin_station} → {dest_station} on {origin_line}")
 
             else:
@@ -295,7 +295,7 @@ if st.button("Calculate trip time"):
                 d2h = NETWORK[dest_line][dest_station]
 
                 travel_minutes = o2h + d2h
-                journey_minutes = travel_minutes + (mean_wait * 2)
+                journey_minutes = travel_minutes + mean_wait
 
                 st.subheader("Result (cross-line)") 
                 st.markdown("---")
@@ -306,7 +306,7 @@ if st.button("Calculate trip time"):
                 st.write(f"- Origin to hub: {pretty_minutes(o2h)}")
                 st.write(f"- Destination to hub: {pretty_minutes(d2h)}")
                 st.write(f"- Mean wait (per connection): {pretty_minutes(mean_wait)}")
-                st.subheader(f"Estimated trip time: {pretty_minutes(journey_minutes)}")
+                st.subheader(f"Journey time: {pretty_minutes(journey_minutes)}")
 
             # ---- Fare calculation (applies to both same-line & cross-line) ----
             single_fare = estimate_single_fare(journey_minutes, payment_method)
