@@ -280,7 +280,12 @@ if st.button("Calculate trip time"):
                 travel_minutes = abs(o2h - d2h)
                 journey_minutes = travel_minutes + mean_wait
 
-                st.subheader("Result (same line)")
+                st.subheader("Result (same line)") 
+                st.markdown("---")
+                st.markdown(
+                f"Time window: {window} — "
+                f"Frequency: {'no service' if headway is None else f'every {headway} minutes'}"
+                )
                 st.write(f"- Travel time: {pretty_minutes(journey_minutes)}")
                 st.write(f"- {origin_station} → {dest_station} on {origin_line}")
 
@@ -292,7 +297,12 @@ if st.button("Calculate trip time"):
                 travel_minutes = o2h + d2h
                 journey_minutes = travel_minutes + (mean_wait * 2)
 
-                st.subheader("Result (cross-line)")
+                st.subheader("Result (cross-line)") 
+                st.markdown("---")
+                st.markdown(
+                f"Time window: {window} — "
+                f"Frequency: {'no service' if headway is None else f'every {headway} minutes'}"
+                )
                 st.write(f"- Origin to hub: {pretty_minutes(o2h)}")
                 st.write(f"- Destination to hub: {pretty_minutes(d2h)}")
                 st.write(f"- Mean wait (per connection): {pretty_minutes(mean_wait)}")
