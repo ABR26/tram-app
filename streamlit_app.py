@@ -263,30 +263,37 @@ if st.button("Calculate trip time"):
         st.error("Origin station not found on selected line.")
     elif dest_station not in NETWORK[dest_line]:
         st.error("Destination station not found on selected line.")
+   else:
+    if headway is None:
+        st.subheader("No service in this time window")
+        st.write(f"Time window: {window} — no trams")
+
     else:
-        if headway is None:
-            st.subheader("No service in this time window")
-            st.write(f"Time window: {window} — no trams")
+        if origin_line == dest_line:
+            # SAME LINE
+            o2h = NETWORK[origin_line][origin_station]
+            d2h = NETWORK[dest_line][dest_station]
+
+            mean_wait = mean_connection_wait_from_headway(headway)
+            journey_minutes = abs(o2h - d2h) + mean_wait
+
+            st.subheader("Result (same line)")
+            st.write(f"- Travel time: {pretty_minutes(journey_minutes)}")
+            st.write(f"- {origin_station} → {dest_station} on {origin_line}")
+
         else:
-            if origin_line == dest_line:
-                o2h = NETWORK[origin_line][origin_station]
-                d2h = NETWORK[dest_line][dest_station]
-                journey_minutes = abs(o2h - d2h) 
+            # CROSS LINE
+            o2h = NETWORK[origin_line][origin_station]
+            d2h = NETWORK[dest_line][dest_station]
 
-                st.subheader("Result (same line)")
-                st.write(f"- Travel time: {pretty_minutes(journey_minutes)}")
-                st.write(f"- {origin_station} → {dest_station} on {origin_line}")
-            else:
-                o2h = NETWORK[origin_line][origin_station]
-                d2h = NETWORK[dest_line][dest_station]
-                mean_wait = mean_connection_wait_from_headway(headway)
-                journey_minutes = o2h + d2h + mean_wait
+            mean_wait = mean_connection_wait_from_headway(headway)
+            journey_minutes = (o2h + d2h) + (mean_wait * 2)
 
-                st.subheader("Result (cross-line)")
-                st.write(f"- Origin to hub: {pretty_minutes(o2h)}")
-                st.write(f"- Destination to hub: {pretty_minutes(d2h)}")
-                st.write(f"- Mean wait: {pretty_minutes(mean_wait)}")
-                st.subheader(f"Estimated trip time: {pretty_minutes(journey_minutes)}")
+            st.subheader("Result (cross-line)")
+            st.write(f"- Origin to hub: {pretty_minutes(o2h)}")
+            st.write(f"- Destination to hub: {pretty_minutes(d2h)}")
+            st.write(f"- Mean wait (per connection): {pretty_minutes(mean_wait)}")
+            st.subheader(f"Estimated trip time: {pretty_minutes(journey_minutes)}")
 
             single_fare = estimate_single_fare(journey_minutes, payment_method)
             st.session_state.daily_spend, charged_now = apply_daily_cap(
