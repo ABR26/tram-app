@@ -6,7 +6,7 @@ from datetime import datetime, time
 
 st.set_page_config(page_title="NET Tram", layout="centered")
 # --- Top-right icon ---
-colA, colB, colC = st.columns([1, -1, 1])
+colA, colB, colC = st.columns([1, 1, 1])
 with colC:
     st.image("assets/download.jpeg.jpg", width=1500)
     
