@@ -320,11 +320,5 @@ if st.button("Calculate trip time"):
                 f"Total paid today (NET contactless cap): £{st.session_state.daily_spend:.2f}"
             )
 
-            # ---- Footer ----
-            st.markdown("---")
-            st.markdown(
-                f"Time window: {window} — "
-                f"Frequency: {'no service' if headway is None else f'every {headway} minutes'}"
-            )
-            st.caption("Random arrival model: mean wait = headway / 2.")
+            
 
