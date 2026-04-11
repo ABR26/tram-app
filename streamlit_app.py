@@ -6,9 +6,9 @@ from datetime import datetime, time
 
 st.set_page_config(page_title="NET Tram", layout="centered")
 # --- Top-right icon ---
-colA, colB, colC = st.columns([1, 2, 1])
+colA, colB, colC = st.columns([1, 1, 1])
 with colC:
-    st.image("assets/download.jpeg.jpg", width=1200)
+    st.image("assets/download.jpeg.jpg", width=1500)
     
 st.markdown("<h1 style='color: green;'>Nottingham Tram NET Trip time</h1>", unsafe_allow_html=True)
 
