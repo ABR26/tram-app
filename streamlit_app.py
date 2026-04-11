@@ -303,11 +303,9 @@ if st.button("Calculate trip time"):
                 f"Time window: {window} — "
                 f"Frequency: {'no service' if headway is None else f'every {headway} minutes'}"
                 )
-                st.write(f"- Origin to hub: {pretty_minutes(o2h)}")
-                st.write(f"- Destination to hub: {pretty_minutes(d2h)}")
+                st.write(f"Journey time: {pretty_minutes(journey_minutes)}")
                 st.write(f"- Mean wait (per connection): {pretty_minutes(mean_wait)}")
-                st.subheader(f"Journey time: {pretty_minutes(journey_minutes)}")
-
+                
             # ---- Fare calculation (applies to both same-line & cross-line) ----
             single_fare = estimate_single_fare(journey_minutes, payment_method)
             st.session_state.daily_spend, charged_now = apply_daily_cap(
