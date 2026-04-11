@@ -116,12 +116,12 @@ if mode == "First & last trams":
     sb_first, sb_last, nb_first, nb_last = infer_first_last(line_choice, stop_choice)
 
     st.write(f"Stop: {stop_choice}")
-    st.write("Southbound")
+    st.write("Northbound")
     st.write(f"First tram: {sb_first}")
     st.write(f"Last tram: {sb_last}")
 
     st.write("")
-    st.write("Northbound")
+    st.write("Southbound")
     st.write(f"First tram: {nb_first}")
     st.write(f"Last tram: {nb_last}")
 
