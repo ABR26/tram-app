@@ -100,12 +100,12 @@ if mode == "First & last trams":
     nb_first, nb_last = infer_northbound(r)
 
     st.write(f"Stop: {stop}")
-    st.write("Southbound (Toton → Hucknall)")
+    st.write("Northbound (Toton → Hucknall)")
     st.write(f"First tram: {sb_first}")
     st.write(f"Last tram: {sb_last}")
 
     st.write("")
-    st.write("Northbound (Hucknall → Toton)")
+    st.write("Southbound (Hucknall → Toton)")
     st.write(f"First tram: {nb_first}")
     st.write(f"Last tram: {nb_last}")
 
