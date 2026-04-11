@@ -271,7 +271,7 @@ if st.button("Calculate trip time"):
             if origin_line == dest_line:
                 o2h = NETWORK[origin_line][origin_station]
                 d2h = NETWORK[dest_line][dest_station]
-                journey_minutes = abs(o2h - d2h) 
+                journey_minutes = abs((o2h - d2h)+(mean_wait/2)) 
 
                 st.subheader("Result (same line)")
                 st.write(f"- Travel time: {pretty_minutes(journey_minutes)}")
@@ -280,7 +280,7 @@ if st.button("Calculate trip time"):
                 o2h = NETWORK[origin_line][origin_station]
                 d2h = NETWORK[dest_line][dest_station]
                 mean_wait = mean_connection_wait_from_headway(headway)
-                journey_minutes = o2h + d2h + mean_wait
+                journey_minutes = o2h + d2h + (mean_wait*2)
 
                 st.subheader("Result (cross-line)")
                 st.write(f"- Origin to hub: {pretty_minutes(o2h)}")
