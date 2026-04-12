@@ -367,7 +367,7 @@ elif mode == "Mini‑Map":
         fill = "Purple" if highlight else "Green"
         stroke = "Green" if highlight else "Green"
         return f"""
-            <circle cx='{x}' cy='100' r='44' fill='{fill}' stroke='{stroke}' stroke-width='10'/>
+            <circle cx='{x}' cy='100' r='44' fill='{fill}' stroke='{stroke}' stroke-width='14'/>
             <text x='{x}' y='200' font-size='25' text-anchor='middle'>{name}</text>
         """
 
