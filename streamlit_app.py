@@ -350,15 +350,15 @@ elif mode == "Mini‑Map":
     svg = """
     <svg xmlns='http://www.w3.org/2000/svg' width='1000' height='200'>
       <rect width='1900' height='300' fill='white' stroke='lightgrey'/>
-      <line x1='200' y1='100' x2='1000' y2='100' stroke='green' stroke-width='10'/>
+      <line x1='50' y1='100' x2='1000' y2='100' stroke='green' stroke-width='10'/>
     """
 
     positions = {
-        "prev2": 200,
+        "prev2": 50,
         "prev1": 400,
         "here": 600,
         "next1": 800,
-        "next2": 1000
+        "next2": 900
     }
 
     def draw_stop(name, x, highlight=False):
