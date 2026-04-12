@@ -349,7 +349,7 @@ elif mode == "Mini‑Map":
     # --- Build SVG ---
     svg = """
     <svg xmlns='http://www.w3.org/2000/svg' width='1000' height='200'>
-      <rect width='1600' height='300' fill='white' stroke='lightgrey'/>
+      <rect width='1700' height='300' fill='white' stroke='lightgrey'/>
       <line x1='80' y1='100' x2='920' y2='100' stroke='green' stroke-width='10'/>
     """
 
@@ -367,7 +367,7 @@ elif mode == "Mini‑Map":
         fill = "Purple" if highlight else "Green"
         stroke = "Green" if highlight else "Green"
         return f"""
-            <circle cx='{x}' cy='100' r='18' fill='{fill}' stroke='{stroke}' stroke-width='8'/>
+            <circle cx='{x}' cy='100' r='20' fill='{fill}' stroke='{stroke}' stroke-width='8'/>
             <text x='{x}' y='145' font-size='26' text-anchor='middle'>{name}</text>
         """
 
