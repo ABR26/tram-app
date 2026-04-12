@@ -367,8 +367,8 @@ elif mode == "Mini‑Map":
         fill = "Purple" if highlight else "Green"
         stroke = "Green" if highlight else "Green"
         return f"""
-            <circle cx='{x}' cy='100' r='18' fill='{fill}' stroke='{stroke}' stroke-width='3'/>
-            <text x='{x}' y='145' font-size='12' text-anchor='middle'>{name}</text>
+            <circle cx='{x}' cy='100' r='18' fill='{fill}' stroke='{stroke}' stroke-width='5'/>
+            <text x='{x}' y='145' font-size='24' text-anchor='middle'>{name}</text>
         """
 
     svg += draw_stop(prev2, positions["prev2"])
