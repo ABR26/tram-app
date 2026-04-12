@@ -348,7 +348,7 @@ elif mode == "Mini‑Map":
 
     # --- Build SVG ---
     svg = """
-    <svg xmlns='http://www.w3.org/2000/svg' width='1000' height='200'>
+    <svg xmlns='http://www.w3.org/2000/svg' width='1000' height='250'>
       <rect width='1900' height='300' fill='white' stroke='lightgrey'/>
       <line x1='100' y1='100' x2='900' y2='100' stroke='green' stroke-width='10'/>
     """
