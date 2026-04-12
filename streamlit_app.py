@@ -355,9 +355,9 @@ elif mode == "Mini‑Map":
 
     positions = {
         "prev2": 80,
-        "prev1": 262,
-        "here": 487,
-        "next1": 714,
+        "prev1": 290,
+        "here": 500,
+        "next1": 710,
         "next2": 920
     }
 
