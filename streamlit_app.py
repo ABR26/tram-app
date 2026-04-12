@@ -350,7 +350,7 @@ elif mode == "Mini‑Map":
     svg = """
     <svg xmlns='http://www.w3.org/2000/svg' width='1000' height='200'>
       <rect width='1000' height='200' fill='white' stroke='lightgrey'/>
-      <line x1='150' y1='100' x2='850' y2='100' stroke='black' stroke-width='4'/>
+      <line x1='150' y1='100' x2='850' y2='100' stroke='green' stroke-width='10'/>
     """
 
     positions = {
@@ -364,8 +364,8 @@ elif mode == "Mini‑Map":
     def draw_stop(name, x, highlight=False):
         if not name:
             return ""
-        fill = "black" if highlight else "white"
-        stroke = "red" if highlight else "black"
+        fill = "Purple" if highlight else "Green"
+        stroke = "Green" if highlight else "Green"
         return f"""
             <circle cx='{x}' cy='100' r='18' fill='{fill}' stroke='{stroke}' stroke-width='3'/>
             <text x='{x}' y='145' font-size='12' text-anchor='middle'>{name}</text>
