@@ -12,7 +12,7 @@ with colC:
     
 st.markdown("<h1 style='color: green;'>Nottingham Tram NET App</h1>", unsafe_allow_html=True)
 
-# ============================================================
+# ===========================================================
 # MODE SELECTOR
 # ============================================================
 mode = st.radio(
@@ -350,15 +350,15 @@ elif mode == "Mini‑Map":
     svg = """
     <svg xmlns='http://www.w3.org/2000/svg' width='1000' height='200'>
       <rect width='1250' height='300' fill='white' stroke='lightgrey'/>
-      <line x1='70' y1='100' x2='930' y2='100' stroke='green' stroke-width='10'/>
+      <line x1='80' y1='100' x2='920' y2='100' stroke='green' stroke-width='10'/>
     """
 
     positions = {
-        "prev2": 70,
+        "prev2": 80,
         "prev1": 262,
         "here": 487,
         "next1": 714,
-        "next2": 930
+        "next2": 920
     }
 
     def draw_stop(name, x, highlight=False):
