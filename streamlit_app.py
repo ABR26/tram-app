@@ -350,7 +350,7 @@ elif mode == "Mini‑Map":
     svg = """
     <svg xmlns='http://www.w3.org/2000/svg' width='1000' height='1200'>
       <rect width='1900' height='300' fill='white' stroke='lightgrey'/>
-      <line x1='100' y1='100' x2='900' y2='100' stroke='green' stroke-width='10'/>
+      <line x1='100' y1='100' x2='900' y2='100' stroke='green' stroke-width='30'/>
     """
 
     positions = {
@@ -367,7 +367,7 @@ elif mode == "Mini‑Map":
         fill = "Purple" if highlight else "Green"
         stroke = "Green" if highlight else "Green"
         return f"""
-            <circle cx='{x}' cy='100' r='22' fill='{fill}' stroke='{stroke}' stroke-width='8'/>
+            <circle cx='{x}' cy='100' r='66' fill='{fill}' stroke='{stroke}' stroke-width='8'/>
             <text x='{x}' y='145' font-size='24' text-anchor='middle'>{name}</text>
         """
 
