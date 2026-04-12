@@ -17,7 +17,7 @@ st.markdown("<h1 style='color: green;'>Nottingham Tram NET App</h1>", unsafe_all
 # ============================================================
 mode = st.radio(
     "Mode",
-    ["Trip time calculator", "First & last trams"],
+    ["Trip time calculator", "First & last trams","Mini‑Map"],
     horizontal=True
 )
 
@@ -319,6 +319,71 @@ if st.button("Calculate trip time"):
                 f"Charge for this journey (after cap): £{charged_now:.2f}\n"
                 f"Total paid today (NET contactless cap): £{st.session_state.daily_spend:.2f}"
             )
+elif mode == "Mini‑Map":
 
+    import base64
+
+    # --- Clifton + Toton only ---
+    mini_map_network = {
+        "Clifton": NETWORK["Clifton"],
+        "Toton": NETWORK["Toton"]
+    }
+
+
+
+    # --- UI ---
+    line = st.selectbox("Choose your line", list(NETWORK.keys()))
+    station = st.selectbox("Choose your station", list(NETWORK[line].keys()))
+
+    # --- Compute adjacent stops ---
+    stops_sorted = sorted(NETWORK[line].items(), key=lambda x: x[1], reverse=True)
+    names = [s[0] for s in stops_sorted]
+
+    idx = names.index(station)
+
+    prev2 = names[idx - 2] if idx >= 2 else None
+    prev1 = names[idx - 1] if idx >= 1 else None
+    next1 = names[idx + 1] if idx + 1 < len(names) else None
+    next2 = names[idx + 2] if idx + 2 < len(names) else None
+
+    # --- Build SVG ---
+    svg = """
+    <svg xmlns='http://www.w3.org/2000/svg' width='1000' height='200'>
+      <rect width='1000' height='200' fill='white' stroke='lightgrey'/>
+      <line x1='150' y1='100' x2='850' y2='100' stroke='black' stroke-width='4'/>
+    """
+
+    positions = {
+        "prev2": 150,
+        "prev1": 325,
+        "here": 500,
+        "next1": 675,
+        "next2": 850
+    }
+
+    def draw_stop(name, x, highlight=False):
+        if not name:
+            return ""
+        fill = "black" if highlight else "white"
+        stroke = "red" if highlight else "black"
+        return f"""
+            <circle cx='{x}' cy='100' r='18' fill='{fill}' stroke='{stroke}' stroke-width='3'/>
+            <text x='{x}' y='145' font-size='12' text-anchor='middle'>{name}</text>
+        """
+
+    svg += draw_stop(prev2, positions["prev2"])
+    svg += draw_stop(prev1, positions["prev1"])
+    svg += draw_stop(station, positions["here"], highlight=True)
+    svg += draw_stop(next1, positions["next1"])
+    svg += draw_stop(next2, positions["next2"])
+
+    svg += "</svg>"
+
+    # --- Encode for stlite ---
+    svg_bytes = svg.encode("utf-8")
+    b64 = base64.b64encode(svg_bytes).decode("utf-8")
+    img_tag = f"<img src='data:image/svg+xml;base64,{b64}'/>"
+
+    st.markdown(img_tag, unsafe_allow_html=True)
             
 
