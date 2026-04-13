@@ -32,7 +32,7 @@ def to_hhmm(m):
     return f"{m // 60:02d}:{m % 60:02d}"
 
 # ============================================================
-# LINE DEFINITIONS (UNIFIED BACKEND)
+# LINE DEFINITIONS (UNIFIED BACKEND) FIRST & LAST
 # ============================================================
 
 LINES = {
