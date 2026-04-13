@@ -45,17 +45,10 @@ LINES = {
             "north_last_dep": "00:15",
         },
         "ratios": {
-            "Toton Lane": 0.00,
-            "Beeston Centre": 0.19,
-            "QMC": 0.35,
-            "NG2": 0.41,
-            "Nottingham Station": 0.492,
-            "Old Market Square": 0.539,
-            "The Forest": 0.66,
-            "Wilkinson Street": 0.746,
-            "Highbury Vale": 0.84,
-            "Bulwell": 0.87,
-            "Hucknall": 1.00
+            "Toton Lane": 0.00, "Inham Road":0.03, "Eskdale Dr":0.063, "Bramcote Ln":0.095, "Cator Ln":0.127, "Beeston Centre": 0.19,
+            "QMC": 0.35, "NG2": 0.41,"Nottingham Station": 0.492,"Old Market Square": 0.539,
+            "The Forest": 0.66,"Wilkinson Street": 0.746,"Highbury Vale": 0.84,
+            "Bulwell": 0.87,"Hucknall": 1.00, 
         }
     },
 
