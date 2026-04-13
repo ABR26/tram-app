@@ -19,7 +19,6 @@ mode = st.radio(
     ["Trip time calculator", "First & last trams", "Mini‑Map", "Journey Map",],
     horizontal=True
 )
-
 # ============================================================
 # SHARED HELPERS
 # ============================================================
@@ -30,7 +29,6 @@ def to_minutes(t):
 def to_hhmm(m):
     m = int(m) % (24 * 60)
     return f"{m // 60:02d}:{m % 60:02d}"
-
 # ============================================================
 # LINE DEFINITIONS (UNIFIED BACKEND) FIRST & LAST
 # ============================================================
@@ -138,7 +136,15 @@ if mode == "Journey Map":
 
         svg += "</svg>"
 
-        st.markdown(svg, unsafe_allow_html=True)
+        # MOBILE-FRIENDLY HORIZONTAL SCROLL WRAPPER
+        st.markdown(
+            f"""
+            <div style="overflow-x: auto; white-space: nowrap; padding-bottom: 10px;">
+                {svg}
+            </div>
+            """,
+            unsafe_allow_html=True
+        )
 
 # ============================================================
 # MODE: FIRST & LAST TRAMS
