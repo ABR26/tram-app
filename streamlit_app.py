@@ -104,13 +104,8 @@ if mode == "Journey Map":
 
     # --- Standalone Journey Map Feature ---
     stops = [
-        "Stop A",
-        "Stop B",
-        "Stop C",
-        "Stop D",
-        "Stop E",
-        "Stop F",
-        "Stop G"
+        "Toton Lane","Beeston Centre","QMC","NG2","Station","Old Market Sq", "The Forest", "Wilkinson St", "Highbury Vale",
+        "Hucknall"
     ]
 
     start_name = st.selectbox("Choose start stop", stops)
