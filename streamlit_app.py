@@ -117,11 +117,12 @@ if mode == "Journey Map":
             i1, i2 = i2, i1
 
         segment = stops[i1 : i2 + 1]
-
+        st.write("Selected segment:", segment)
+        
         spacing = 150
         radius = 10
         y = 50
-
+        total_width = len(segment) * spacing + 100
         svg = "<svg width='{total_width}' height='150' xmlns='http://www.w3.org/2000/svg'>"
 
         for i in range(len(segment) - 1):
