@@ -122,7 +122,8 @@ if mode == "Journey Map":
         radius = 10
         y = 50
         total_width = len(segment) * spacing + 100
-        svg = "<svg width='{total_width}' height='150' style="max-width:none; width:{total_width}px; display:block;" xmlns='http://www.w3.org/2000/svg'>"
+        svg = f'<svg width="{total_width}" height="150" style="max-width:none; width:{total_width}px; display:block;" xmlns="http://www.w3.org/2000/svg">'
+
 
         for i in range(len(segment) - 1):
             x1 = i * spacing + 50
