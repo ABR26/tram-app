@@ -101,7 +101,6 @@ def infer_first_last(line_name, stop):
 # ============================================================    
 if mode == "Journey Map":
     st.header("Journey Map")
-
     # --- Standalone Journey Map Feature ---
     stops = [
         "Toton Lane","Beeston Centre","QMC","NG2","Station","Old Market Sq", "The Forest", "Wilkinson St", "Highbury Vale",
@@ -130,11 +129,11 @@ if mode == "Journey Map":
         for i in range(len(segment) - 1):
             x1 = i * spacing + 50
             x2 = (i + 1) * spacing + 50
-            svg += f"<line x1='{x1}' y1='{y}' x2='{x2}' y2='{y}' stroke='Green' stroke-width='20' />"
+            svg += f"<line x1='{x1}' y1='{y}' x2='{x2}' y2='{y}' stroke='Green' stroke-width='10' />"
 
         for i, name in enumerate(segment):
             x = i * spacing + 50
-            svg += f"<circle cx='{x}' cy='{y}' r='{radius}' fill='Purple' stroke='Green' stroke-width='6' />"
+            svg += f"<circle cx='{x}' cy='{y}' r='{radius}' fill='Purple' stroke='Green' stroke-width='4' />"
             svg += f"<text x='{x}' y='{y+30}' font-size='18' text-anchor='middle'>{name}</text>"
 
         svg += "</svg>"
