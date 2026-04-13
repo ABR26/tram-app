@@ -16,7 +16,7 @@ st.markdown("<h1 style='color: green;'>Nottingham Tram NET App</h1>", unsafe_all
 # ============================================================
 mode = st.radio(
     "Mode",
-    ["Trip time calculator", "First & last trams", "Mini‑Map"],
+    ["Trip time calculator", "First & last trams", "Mini‑Map, "Journey Map"],
     horizontal=True
 )
 
@@ -96,6 +96,55 @@ def infer_first_last(line_name, stop):
     north_last = to_hhmm(to_minutes(a["north_last_dep"]) + (1 - r) * runtime)
 
     return south_first, south_last, north_first, north_last
+# ============================================================
+# MODE: Journey Map
+# ============================================================    
+elif mode == "Journey Map":
+    st.header("Journey Map")
+
+    # --- Standalone Journey Map Feature ---
+    stops = [
+        "Stop A",
+        "Stop B",
+        "Stop C",
+        "Stop D",
+        "Stop E",
+        "Stop F",
+        "Stop G"
+    ]
+
+    start_name = st.selectbox("Choose start stop", stops)
+    end_name   = st.selectbox("Choose end stop", stops)
+
+    if st.button("Show Mini Map"):
+
+        i1 = stops.index(start_name)
+        i2 = stops.index(end_name)
+
+        if i1 > i2:
+            i1, i2 = i2, i1
+
+        segment = stops[i1 : i2 + 1]
+
+        spacing = 150
+        radius = 10
+        y = 50
+
+        svg = "<svg width='900' height='150' xmlns='http://www.w3.org/2000/svg'>"
+
+        for i in range(len(segment) - 1):
+            x1 = i * spacing + 50
+            x2 = (i + 1) * spacing + 50
+            svg += f"<line x1='{x1}' y1='{y}' x2='{x2}' y2='{y}' stroke='black' stroke-width='3' />"
+
+        for i, name in enumerate(segment):
+            x = i * spacing + 50
+            svg += f"<circle cx='{x}' cy='{y}' r='{radius}' fill='white' stroke='black' stroke-width='2' />"
+            svg += f"<text x='{x}' y='{y+30}' font-size='12' text-anchor='middle'>{name}</text>"
+
+        svg += "</svg>"
+
+        st.markdown(svg, unsafe_allow_html=True)
 
 # ============================================================
 # MODE: FIRST & LAST TRAMS
