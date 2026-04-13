@@ -99,7 +99,7 @@ def infer_first_last(line_name, stop):
 # ============================================================
 # MODE: Journey Map
 # ============================================================    
-elif mode == "Journey Map":
+if mode == "Journey Map":
     st.header("Journey Map")
 
     # --- Standalone Journey Map Feature ---
