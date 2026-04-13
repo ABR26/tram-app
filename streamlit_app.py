@@ -5,19 +5,13 @@ import streamlit as st
 from datetime import datetime, time
 
 st.set_page_config(page_title="NET Tram", layout="centered")
-# --- Top-right icon ---
-colA, colB, colC = st.columns([1, 1, 1])
-with colC:
-    st.image("assets/download.jpeg.jpg", width=1200)
-    
-st.markdown("<h1 style='color: green;'>Nottingham Tram NET App</h1>", unsafe_allow_html=True)
 
 # ===========================================================
 # MODE SELECTOR
 # ============================================================
 mode = st.radio(
     "Mode",
-    ["Trip time calculator", "First & last trams","Mini‑Map"],
+    ["Trip time calculator", "First & last trams", "Mini‑Map"],
     horizontal=True
 )
 
@@ -26,11 +20,11 @@ mode = st.radio(
 # ============================================================
 def to_minutes(t):
     h, m = map(int, t.split(":"))
-    return h*60 + m
+    return h * 60 + m
 
 def to_hhmm(m):
-    m = int(m) % (24*60)
-    return f"{m//60:02d}:{m%60:02d}"
+    m = int(m) % (24 * 60)
+    return f"{m // 60:02d}:{m % 60:02d}"
 
 # ============================================================
 # LINE DEFINITIONS (UNIFIED BACKEND)
@@ -40,10 +34,10 @@ LINES = {
     "Toton–Hucknall": {
         "runtime": 63,
         "anchors": {
-            "south_first_dep": "06:01",   # Toton → Hucknall
-            "south_last_dep":  "01:05",
-            "north_first_dep": "06:04",   # Hucknall → Toton
-            "north_last_dep":  "00:15",
+            "south_first_dep": "06:01",
+            "south_last_dep": "01:05",
+            "north_first_dep": "06:04",
+            "north_last_dep": "00:15",
         },
         "ratios": {
             "Toton Lane": 0.00,
@@ -63,10 +57,10 @@ LINES = {
     "Phoenix–Clifton": {
         "runtime": 46,
         "anchors": {
-            "south_first_dep": "06:04",   # Phoenix Park → Clifton South
-            "south_last_dep":  "00:15",
-            "north_first_dep": "06:02",   # Clifton South → Phoenix Park
-            "north_last_dep":  "00:48",
+            "south_first_dep": "06:04",
+            "south_last_dep": "00:15",
+            "north_first_dep": "06:02",
+            "north_last_dep": "00:48",
         },
         "ratios": {
             "Phoenix Park": 1.000,
@@ -96,10 +90,10 @@ def infer_first_last(line_name, stop):
     a = line["anchors"]
 
     south_first = to_hhmm(to_minutes(a["south_first_dep"]) + r * runtime)
-    south_last  = to_hhmm(to_minutes(a["south_last_dep"])  + r * runtime)
+    south_last = to_hhmm(to_minutes(a["south_last_dep"]) + r * runtime)
 
     north_first = to_hhmm(to_minutes(a["north_first_dep"]) + (1 - r) * runtime)
-    north_last  = to_hhmm(to_minutes(a["north_last_dep"])  + (1 - r) * runtime)
+    north_last = to_hhmm(to_minutes(a["north_last_dep"]) + (1 - r) * runtime)
 
     return south_first, south_last, north_first, north_last
 
@@ -128,7 +122,7 @@ if mode == "First & last trams":
     st.stop()
 
 # ============================================================
-# MODE: TRIP TIME CALCULATOR (YOUR ORIGINAL TOOL)
+# MODE: TRIP TIME CALCULATOR
 # ============================================================
 
 # ---- Fare model ----
@@ -156,50 +150,39 @@ def apply_daily_cap(current_total, new_fare, payment_method):
     after = min(before + new_fare, CONTACTLESS_DAILY_CAP)
     return after, after - before
 
-# ---- Network hub tables (unchanged) ----
-CLIFTON = {
-    "Clifton South": 21, "Summerwood Lane": 20, "Holy Trinity": 19,
-    "Clifton Centre": 16, "Rivergreen": 15, "Southchurch Drive North": 13.5,
-    "Ruddington Lane": 11, "Compton Acres": 10, "Wilford Lane": 8,
-    "Wilford Village": 4, "Meadows Embankment": 3, "Queens Walk": 1.5, "Station": 0,
+# ---- Network hub tables ----
+HUBS = ["Station", "David Lane"]
+
+CLIFTONPHOENIX = {
+    "Clifton South": 0, "Summerwood Lane": 2, "Holy Trinity": 4,
+    "Clifton Centre": 5, "Rivergreen": 7, "Southchurch Dr N": 9,
+    "Ruddington Lane": 11, "Compton Acres": 12, "Wilford Lane": 13,
+    "Wilford Village": 15, "Meadows Embankment": 18, "Queens Walk": 20,
+    "Station": 23, "Lace Market": 25, "Old Market Sq": 26, "Royal Centre": 28,
+    "Nott Trent Uni": 29, "High School": 31, "The Forest": 32,
+    "Hyson Gr Market": 35, "Radford Rd": 37, "Wilkinson St": 39,
+    "Basford": 41, "David Lane": 42, "Highbury Vale": 43,
+    "Cinderhill": 45, "Phoenix Park": 46
 }
-TOTON = {
-    "Toton": 31, "Inham Road": 29, "Eskdale Drive": 27, "Bramcote Lane": 25,
-    "Cator Lane": 23, "High Road": 21, "Chilwell Road": 20, "Beeston Centre": 18,
-    "Middle Street": 16, "University Boulevard": 14, "University Of Nottingham": 10,
-    "QMC": 8, "Gregory Street": 6.5, "NG2": 4, "Meadows Way West": 2.5, "Station": 0,
-}
-HUCKNALL = {
-    "Hucknall": 12, "Butlers Hill": 9, "Moor Bridge": 7, "Bulwell Forest": 5,
-    "Bulwell": 3, "Highbury Vale": 1, "David Lane": 0,
-}
-PHOENIX = {
-    "Phoenix": 4, "CinderHill": 2, "Highbury Vale": 1, "David Lane": 0,
-}
-FOREST = {
-    "The Forest": 10, "High School": 8, "Nottingham Trent Uni": 6,
-    "Royal Centre": 4, "Old Market Square": 3, "Lace Market": 2, "Station": 0,
-}
-NOEL = {
-    "Noel Street": 2, "The Forest": 0, "Beaconsfield Road": 4,
-    "Shipstone Street": 6, "Wilkinson Street": 8,
-}
-HYSON = {
-    "Hyson Green": 2, "The Forest": 0, "Radford Road": 5, "Wilkinson Street": 8,
-}
-BASFORD = {
-    "Basford": 2, "Wilkinson Street": 0, "David Lane": 4,
+
+TOTONHUCKNALL = {
+    "Toton": 0, "Inham Road": 2, "Eskdale Drive": 4, "Bramcote Lane": 6,
+    "Cator Lane": 8, "High Road": 10, "Chilwell Road": 12,
+    "Beeston Centre": 14.5, "Middle Street": 16,
+    "University Boulevard": 18.5, "University Of Nottingham": 20,
+    "QMC": 22, "Gregory Street": 24, "NG2": 26, "Meadows Way West": 28.5,
+    "Station": 31, "Lace Market": 32.5, "Old Market Sq": 34,
+    "Royal Centre": 36, "Nott Trent Uni": 38, "High School": 40,
+    "The Forest": 42, "Noel St": 43.25, "Beaconsfield St": 44.5,
+    "Shipstone St": 45.75, "Wilkinson St": 47, "Basford": 49,
+    "David Lane": 51, "Highbury Vale": 53, "Bulwell": 55,
+    "Bulwell Forest": 57, "Moor Bridge": 59, "Butlers Hill": 61,
+    "Hucknall": 63
 }
 
 NETWORK = {
-    "Clifton": CLIFTON,
-    "Toton": TOTON,
-    "Hucknall": HUCKNALL,
-    "Phoenix": PHOENIX,
-    "The Forest": FOREST,
-    "Noel Street": NOEL,
-    "Hyson Green": HYSON,
-    "Basford": BASFORD,
+    "CliftonPhoenix": CLIFTONPHOENIX,
+    "TotonHucknall": TOTONHUCKNALL,
 }
 
 # ---- Headways ----
@@ -252,6 +235,8 @@ with col2:
     dest_line = st.selectbox("Destination line", list(NETWORK.keys()), index=1)
     dest_station = st.selectbox("Destination station", sorted(NETWORK[dest_line].keys()), index=0)
 
+chosen_hub = st.selectbox("Choose interchange hub", HUBS)
+
 time_choice = st.radio("Arrival time", ("Now", "Pick time"), index=0)
 t = datetime.now().time() if time_choice == "Now" else st.time_input("Pick arrival time")
 
@@ -267,46 +252,44 @@ if st.button("Calculate trip time"):
         if headway is None:
             st.subheader("No service in this time window")
             st.write(f"Time window: {window} — no trams")
-
         else:
-            # Compute mean wait once
             mean_wait = mean_connection_wait_from_headway(headway)
 
             if origin_line == dest_line:
-                # SAME LINE
                 o2h = NETWORK[origin_line][origin_station]
                 d2h = NETWORK[dest_line][dest_station]
-
                 travel_minutes = abs(o2h - d2h)
-                journey_minutes = travel_minutes 
+                journey_minutes = travel_minutes
 
-                st.subheader("Result (same line)") 
+                st.subheader("Result (same line)")
                 st.markdown("---")
                 st.markdown(
-                f"Time window: {window} — "
-                f"Frequency: {'no service' if headway is None else f'every {headway} minutes'}"
+                    f"Time window: {window} — "
+                    f"Frequency: every {headway} minutes"
                 )
                 st.write(f"- Journey time: {pretty_minutes(journey_minutes)}")
                 st.write(f"- {origin_station} → {dest_station} on {origin_line}")
 
             else:
-                # CROSS LINE
-                o2h = NETWORK[origin_line][origin_station]
-                d2h = NETWORK[dest_line][dest_station]
+                dist_origin = NETWORK[origin_line][origin_station]
+                dist_dest = NETWORK[dest_line][dest_station]
+
+                o2h = abs(NETWORK[origin_line][origin_station] - NETWORK[origin_line][chosen_hub])
+                d2h = abs(NETWORK[dest_line][dest_station] - NETWORK[dest_line][chosen_hub])
 
                 travel_minutes = o2h + d2h
                 journey_minutes = travel_minutes + mean_wait
 
-                st.subheader("Result (cross-line)") 
+                st.subheader("Result (cross line)")
                 st.markdown("---")
                 st.markdown(
-                f"Time window: {window} — "
-                f"Frequency: {'no service' if headway is None else f'every {headway} minutes'}"
+                    f"Time window: {window} — every {headway} minutes"
                 )
-                st.write(f"Journey time: {pretty_minutes(journey_minutes)}")
+                st.write(f"- Hub used: {chosen_hub}")
+                st.write(f"- Journey time: {pretty_minutes(journey_minutes)}")
+                st.write(f"- {origin_station} → {chosen_hub} → {dest_station}")
                 st.write(f"- Mean wait (per connection): {pretty_minutes(mean_wait)}")
-                
-            # ---- Fare calculation (applies to both same-line & cross-line) ----
+
             single_fare = estimate_single_fare(journey_minutes, payment_method)
             st.session_state.daily_spend, charged_now = apply_daily_cap(
                 st.session_state.daily_spend,
@@ -319,23 +302,19 @@ if st.button("Calculate trip time"):
                 f"Charge for this journey (after cap): £{charged_now:.2f}\n"
                 f"Total paid today (NET contactless cap): £{st.session_state.daily_spend:.2f}"
             )
+
 elif mode == "Mini‑Map":
 
     import base64
 
-    # --- Clifton + Toton only ---
     mini_map_network = {
-        "Clifton": NETWORK["Clifton"],
-        "Toton": NETWORK["Toton"]
+        "Clifton": NETWORK["CliftonPhoenix"],
+        "Toton": NETWORK["TotonHucknall"]
     }
 
-
-
-    # --- UI ---
     line = st.selectbox("Choose your line", list(NETWORK.keys()))
     station = st.selectbox("Choose your station", list(NETWORK[line].keys()))
 
-    # --- Compute adjacent stops ---
     stops_sorted = sorted(NETWORK[line].items(), key=lambda x: x[1], reverse=True)
     names = [s[0] for s in stops_sorted]
 
@@ -346,7 +325,6 @@ elif mode == "Mini‑Map":
     next1 = names[idx + 1] if idx + 1 < len(names) else None
     next2 = names[idx + 2] if idx + 2 < len(names) else None
 
-    # --- Build SVG ---
     svg = """
     <svg xmlns='http://www.w3.org/2000/svg' width='1000' height='1200'>
       <rect width='1900' height='300' fill='white' stroke='lightgrey'/>
@@ -365,7 +343,7 @@ elif mode == "Mini‑Map":
         if not name:
             return ""
         fill = "Purple" if highlight else "Green"
-        stroke = "Green" if highlight else "Green"
+        stroke = "Green"
         return f"""
             <circle cx='{x}' cy='100' r='44' fill='{fill}' stroke='{stroke}' stroke-width='14'/>
             <text x='{x}' y='200' font-size='25' text-anchor='middle'>{name}</text>
@@ -379,11 +357,8 @@ elif mode == "Mini‑Map":
 
     svg += "</svg>"
 
-    # --- Encode for stlite ---
     svg_bytes = svg.encode("utf-8")
     b64 = base64.b64encode(svg_bytes).decode("utf-8")
     img_tag = f"<img src='data:image/svg+xml;base64,{b64}'/>"
 
     st.markdown(img_tag, unsafe_allow_html=True)
-            
-
