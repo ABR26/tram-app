@@ -111,7 +111,7 @@ if mode == "Journey Map":
     start_name = st.selectbox("Choose start stop", stops)
     end_name   = st.selectbox("Choose end stop", stops)
 
-    if st.button("Show Mini Map"):
+    if st.button("Map My Journey"):
 
         i1 = stops.index(start_name)
         i2 = stops.index(end_name)
@@ -130,12 +130,12 @@ if mode == "Journey Map":
         for i in range(len(segment) - 1):
             x1 = i * spacing + 50
             x2 = (i + 1) * spacing + 50
-            svg += f"<line x1='{x1}' y1='{y}' x2='{x2}' y2='{y}' stroke='black' stroke-width='3' />"
+            svg += f"<line x1='{x1}' y1='{y}' x2='{x2}' y2='{y}' stroke='Green' stroke-width='20' />"
 
         for i, name in enumerate(segment):
             x = i * spacing + 50
-            svg += f"<circle cx='{x}' cy='{y}' r='{radius}' fill='white' stroke='black' stroke-width='2' />"
-            svg += f"<text x='{x}' y='{y+30}' font-size='12' text-anchor='middle'>{name}</text>"
+            svg += f"<circle cx='{x}' cy='{y}' r='{radius}' fill='Purple' stroke='Green' stroke-width='6' />"
+            svg += f"<text x='{x}' y='{y+30}' font-size='18' text-anchor='middle'>{name}</text>"
 
         svg += "</svg>"
 
