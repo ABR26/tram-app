@@ -16,7 +16,7 @@ st.markdown("<h1 style='color: green;'>Nottingham Tram NET App</h1>", unsafe_all
 # ============================================================
 mode = st.radio(
     "Mode",
-    ["Trip time calculator", "First & last trams", "Mini‑Map, "Journey Map",],
+    ["Trip time calculator", "First & last trams", "Mini‑Map", "Journey Map",],
     horizontal=True
 )
 
