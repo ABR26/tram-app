@@ -201,14 +201,14 @@ HUBS = ["Station", "David Lane"]
 
 CLIFTONPHOENIX = {
     "Clifton South": 0, "Summerwood Lane": 2, "Holy Trinity": 4,
-    "Clifton Centre": 5, "Rivergreen": 7, "Southchurch Dr N": 9,
-    "Ruddington Lane": 11, "Compton Acres": 12, "Wilford Lane": 13,
-    "Wilford Village": 15, "Meadows Embankment": 18, "Queens Walk": 20,
-    "Station": 23, "Lace Market": 25, "Old Market Sq": 26, "Royal Centre": 28,
-    "Nott Trent Uni": 29, "High School": 31, "The Forest": 32,
-    "Hyson Gr Market": 35, "Radford Rd": 37, "Wilkinson St": 39,
-    "Basford": 41, "David Lane": 42, "Highbury Vale": 43,
-    "Cinderhill": 45, "Phoenix Park": 46
+    "Clifton Centre": 5, "Rivergreen": 5.9, "Southchurch Dr N": 7.7,
+    "Ruddington Lane": 10.6, "Compton Acres": 11.4, "Wilford Lane": 13,
+    "Wilford Village": 14.4, "Meadows Embankment": 17.2, "Queens Walk": 18.37,
+    "Station": 21, "Lace Market": 23.14, "Old Market Sq": 24, "Royal Centre": 25.75,
+    "Nott Trent Uni": 27.3, "High School": 28.7, "The Forest": 32,
+    "Hyson Gr Market": 33.5, "Radford Rd": 36, "Wilkinson St": 37,
+    "Basford": 39.27, "David Lane": 41, "Highbury Vale": 43,
+    "Cinderhill": 44.6, "Phoenix Park": 46
 }
 
 TOTONHUCKNALL = {
