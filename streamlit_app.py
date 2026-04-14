@@ -94,8 +94,11 @@ if mode == "Journey Map":
     st.header("Journey Map")
     # --- Standalone Journey Map Feature ---
     stops = [
-        "Toton Lane","Beeston Centre","QMC","NG2","Station","Old Market Sq", "The Forest", "Wilkinson St", "Highbury Vale",
-        "Hucknall"
+        "Toton Lane", "Inham Road","Eskdale Dr","Bramcote Ln","Cator Ln","High Rd Cent Col","Chilwell Rd",
+        "Beeston Centre","Middle St","University Bl'vrd", "University of Nott","QMC","Gregory St","NG2",
+        "Meadows Wy Wst","Station","Lace Market","Old Market Sq", "Royal Centre", "Nott Trent Uni","High School",
+        "The Forest","Noel St", "Beaconsf'ld St","Shipstone St","Wilkinson St","Basford","David Lane","Highbury Vale",
+        "Bulwell","Bulwell F'rst","Moor Bridge","Butlers Hill","Hucknall"
     ]
 
     start_name = st.selectbox("Choose start stop", stops)
