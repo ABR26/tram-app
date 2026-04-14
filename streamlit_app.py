@@ -62,17 +62,17 @@ LINES = {
         },
         "ratios": {
             "Phoenix Park": 1.000,
-            "Cinderhill": 0.030,
-            "Highbury Vale": 0.066,
-            "David Lane": 0.087,
-            "Basford": 0.110,
-            "Wilkinson Street": 0.153,
-            "The Forest": 0.310,
-            "Old Market Square": 0.435,
-            "Nottingham Station": 0.500,
-            "Meadows Embankment": 0.610,
-            "Compton Acres": 0.740,
-            "Clifton Centre": 0.881,
+            "Cinderhill": 0.0311,
+            "Highbury Vale": 0.0653,
+            "David Lane": 0.11,
+            "Basford": 0.1464,
+            "Wilkinson Street": 0.1957,
+            "The Forest": 0.3043,
+            "Old Market Square": 0.4782,
+            "Nottingham Station": 0.54347,
+            "Meadows Embankment": 0.626,
+            "Compton Acres": 0.7528,
+            "Clifton Centre": 0.891,
             "Clifton South": 0.000
         }
     }
