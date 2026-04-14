@@ -216,9 +216,9 @@ CLIFTONPHOENIX = {
 }
 
 TOTONHUCKNALL = {
-    "Toton": 0, "Inham Road": 2, "Eskdale Drive": 4, "Bramcote Lane": 6,
-    "Cator Lane": 8, "High Road": 10, "Chilwell Road": 12,
-    "Beeston Centre": 14.5, "Middle Street": 16,
+    "Toton": 0, "Inham Road": 3, "Eskdale Drive": 5, "Bramcote Lane": 6,
+    "Cator Lane": 8, "High Road": 10, "Chilwell Road": 11,
+    "Beeston Centre": 12, "Middle Street": 16,
     "University Boulevard": 18.5, "University Of Nottingham": 20,
     "QMC": 22, "Gregory Street": 24, "NG2": 26, "Meadows Way West": 28.5,
     "Station": 31, "Lace Market": 32.5, "Old Market Sq": 34,
