@@ -60,20 +60,13 @@ LINES = {
             "north_first_dep": "06:02",
             "north_last_dep": "00:48",
         },
-        "ratios": {
-            "Phoenix Park": 1.000,
-            "Cinderhill": 0.0311,
-            "Highbury Vale": 0.0653,
-            "David Lane": 0.11,
-            "Basford": 0.1464,
-            "Wilkinson Street": 0.1957,
-            "The Forest": 0.3043,
-            "Old Market Square": 0.4782,
-            "Nottingham Station": 0.54347,
-            "Meadows Embankment": 0.626,
-            "Compton Acres": 0.7528,
-            "Clifton Centre": 0.891,
-            "Clifton South": 0.000
+        "ratios": {"Phoenix Park": 1.000,"Cinderhill": 0.0311,"Highbury Vale": 0.0653,"David Lane": 0.11,
+            "Basford": 0.1464,"Wilkinson Street": 0.1957, "Radford Road":0.216, "Hyson Green Market":0.2707,
+            "The Forest": 0.3043, "High School":0.376, "Nott Trent Uni":0.4066, "Royal Centre":0.4395, 
+            "Old Market Square": 0.4782, "Lace Market":0.4968, "Nottingham Station": 0.54347, "Queens Walk":0.6005, 
+            "Meadows Embankment": 0.626, "Wilford Village":0.686, "Wilford Lane":0.7173, "Compton Acres": 0.7528,
+            "Ruddington Lane":0.7689, "Southchurch Drive Nth":0.8334, "Rivergreen":0.872, "Clifton Centre": 0.891,
+            "Holy Trinity":0.9137, "Summerwood Lane":0.9554, "Clifton South": 0.000
         }
     }
 }
