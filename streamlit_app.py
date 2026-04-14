@@ -95,7 +95,7 @@ if mode == "Journey Map":
     # --- Standalone Journey Map Feature ---
     stops = [
         "Toton Lane", "Inham Road","Eskdale Dr","Bramcote Ln","Cator Ln","High Rd Cent Coll","Chilwell Rd",
-        "Beeston Centre","Middle St","University Bl'vrd", "University of Nottingham","QMC","Gregory St","NG2",
+        "Beeston Centre","Middle St","University Bl'vrd", "Uni of Nottingham","QMC","Gregory St","NG2",
         "Meadows Way West","Station","Lace Market","Old Market Square", "Royal Centre", "Nottingham Trent Uni","High School",
         "The Forest","Noel St", "Beaconsfield St","Shipstone St","Wilkinson St","Basford","David Lane","Highbury Vale",
         "Bulwell","Bulwell Forest","Moor Bridge","Butlers Hill","Hucknall"
