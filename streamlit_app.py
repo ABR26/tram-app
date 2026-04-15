@@ -5,20 +5,23 @@ import streamlit as st
 from datetime import datetime, time
 
 st.set_page_config(page_title="NET Tram", layout="centered")
+
 # --- Top-right icon ---
 colA, colB, colC = st.columns([1, 1, 1])
 with colC:
     st.image("assets/download.jpeg.jpg", width=1200)
 
 st.markdown("<h1 style='color: green;'>Nottingham Tram NET App</h1>", unsafe_allow_html=True)
+
 # ===========================================================
 # MODE SELECTOR
 # ============================================================
 mode = st.radio(
     "Mode",
-    ["Trip time calculator", "First & last trams", "Mini‑Map", "Journey Map",],
+    ["Trip time calculator", "First & last trams", "Mini‑Map", "Journey Map"],
     horizontal=True
 )
+
 # ============================================================
 # SHARED HELPERS
 # ============================================================
@@ -29,8 +32,9 @@ def to_minutes(t):
 def to_hhmm(m):
     m = int(m) % (24 * 60)
     return f"{m // 60:02d}:{m % 60:02d}"
+
 # ============================================================
-# LINE DEFINITIONS (UNIFIED BACKEND) FIRST & LAST
+# LINE DEFINITIONS (UNIFIED BACKEND)
 # ============================================================
 
 LINES = {
@@ -43,12 +47,16 @@ LINES = {
             "north_last_dep": "00:15",
         },
         "ratios": {
-            "Toton Lane": 0.00, "Inham Road":0.0536, "Eskdale Dr":0.0777, "Bramcote Ln":0.0992, "Cator Ln":0.126, "High Rd":0.1501,
-            "Chilwell Rd":0.1717,"Beeston Centre": 0.1905, "Middle St":0.254, "University Boulevard":0.23, "University Of Nottingham":0.317,
-            "QMC": 0.35, "Gregory Street":0.381, "Meadows Way West":0.452, "NG2": 0.41,"Nottingham Station": 0.492, "Lace Market":0.515,
-            "Old Market Square": 0.539, "Royal Centre":0.57, "Nottingham Trent Uni":0.603, "High School":0.635, "The Forest": 0.66, 
-            "Noel St":0.675, "Beaconsfield St":0.69, "Shipstone St":0.733, "Wilkinson Street": 0.746, "Basford":0.777, "David Lane":0.81, 
-            "Highbury Vale": 0.84, "Bulwell": 0.87, "Bulwell Forest":0.873, "Moor Bridge":0.905, "Butlers Hill":0.97, "Hucknall": 1.00, 
+            "Toton Lane": 0.00, "Inham Road":0.0536, "Eskdale Dr":0.0777, "Bramcote Ln":0.0992,
+            "Cator Ln":0.126, "High Rd":0.1501, "Chilwell Rd":0.1717, "Beeston Centre": 0.1905,
+            "Middle St":0.254, "University Boulevard":0.23, "University Of Nottingham":0.317,
+            "QMC": 0.35, "Gregory Street":0.381, "Meadows Way West":0.452, "NG2": 0.41,
+            "Nottingham Station": 0.492, "Lace Market":0.515, "Old Market Square": 0.539,
+            "Royal Centre":0.57, "Nottingham Trent Uni":0.603, "High School":0.635,
+            "The Forest": 0.66, "Noel St":0.675, "Beaconsfield St":0.69, "Shipstone St":0.733,
+            "Wilkinson Street": 0.746, "Basford":0.777, "David Lane":0.81, "Highbury Vale": 0.84,
+            "Bulwell": 0.87, "Bulwell Forest":0.873, "Moor Bridge":0.905, "Butlers Hill":0.97,
+            "Hucknall": 1.00,
         }
     },
 
@@ -60,19 +68,22 @@ LINES = {
             "north_first_dep": "06:02",
             "north_last_dep": "00:48",
         },
-        "ratios": {"Phoenix Park": 1.000,"Cinderhill": 0.0311,"Highbury Vale": 0.0653,"David Lane": 0.11,
-            "Basford": 0.1464,"Wilkinson Street": 0.1957, "Radford Road":0.216, "Hyson Green Market":0.2707,
-            "The Forest": 0.3043, "High School":0.376, "Nott Trent Uni":0.4066, "Royal Centre":0.4395, 
-            "Old Market Square": 0.4782, "Lace Market":0.4968, "Nottingham Station": 0.54347, "Queens Walk":0.6005, 
-            "Meadows Embankment": 0.626, "Wilford Village":0.686, "Wilford Lane":0.7173, "Compton Acres": 0.7528,
-            "Ruddington Lane":0.7689, "Southchurch Drive Nth":0.8334, "Rivergreen":0.872, "Clifton Centre": 0.891,
-            "Holy Trinity":0.9137, "Summerwood Lane":0.9554, "Clifton South": 0.000
+        "ratios": {
+            "Phoenix Park": 1.000,"Cinderhill": 0.0311,"Highbury Vale": 0.0653,"David Lane": 0.11,
+            "Basford": 0.1464,"Wilkinson Street": 0.1957, "Radford Road":0.216,
+            "Hyson Green Market":0.2707, "The Forest": 0.3043, "High School":0.376,
+            "Nott Trent Uni":0.4066, "Royal Centre":0.4395, "Old Market Square": 0.4782,
+            "Lace Market":0.4968, "Nottingham Station": 0.54347, "Queens Walk":0.6005,
+            "Meadows Embankment": 0.626, "Wilford Village":0.686, "Wilford Lane":0.7173,
+            "Compton Acres": 0.7528, "Ruddington Lane":0.7689, "Southchurch Drive Nth":0.8334,
+            "Rivergreen":0.872, "Clifton Centre": 0.891, "Holy Trinity":0.9137,
+            "Summerwood Lane":0.9554, "Clifton South": 0.000
         }
     }
 }
 
 # ============================================================
-# INFERENCE ENGINE (UNIFIED)
+# INFERENCE ENGINE
 # ============================================================
 def infer_first_last(line_name, stop):
     line = LINES[line_name]
@@ -87,39 +98,76 @@ def infer_first_last(line_name, stop):
     north_last = to_hhmm(to_minutes(a["north_last_dep"]) + (1 - r) * runtime)
 
     return south_first, south_last, north_first, north_last
+
 # ============================================================
-# MODE: Journey Map
-# ============================================================    
+# NETWORK TABLES (GLOBAL — FIXED)
+# ============================================================
+
+CLIFTONPHOENIX = {
+    "Clifton South": 0, "Summerwood Lane": 2, "Holy Trinity": 4,
+    "Clifton Centre": 5, "Rivergreen": 5.9, "Southchurch Dr N": 7.7,
+    "Ruddington Lane": 10.6, "Compton Acres": 11.4, "Wilford Lane": 13,
+    "Wilford Village": 14.4, "Meadows Embankment": 17.2, "Queens Walk": 18.37,
+    "Station": 21, "Lace Market": 23.14, "Old Market Sq": 24,
+    "Royal Centre": 25.75, "Nott Trent Uni": 27.3, "High School": 28.7,
+    "The Forest": 32, "Hyson Gr Market": 33.5, "Radford Rd": 36,
+    "Wilkinson St": 37, "Basford": 39.27, "David Lane": 41,
+    "Highbury Vale": 43, "Cinderhill": 44.6, "Phoenix Park": 46
+}
+
+TOTONHUCKNALL = {
+    "Toton": 0, "Inham Road": 3, "Eskdale Drive": 5, "Bramcote Lane": 6,
+    "Cator Lane": 8, "High Road": 10, "Chilwell Road": 11,
+    "Beeston Centre": 12, "Middle Street": 16,
+    "University Boulevard": 18.5, "University Of Nottingham": 20,
+    "QMC": 22, "Gregory Street": 24, "NG2": 26, "Meadows Way West": 28.5,
+    "Station": 31, "Lace Market": 32.5, "Old Market Sq": 34,
+    "Royal Centre": 36, "Nott Trent Uni": 38, "High School": 40,
+    "The Forest": 42, "Noel St": 43.25, "Beaconsfield St": 44.5,
+    "Shipstone St": 45.75, "Wilkinson St": 47, "Basford": 49,
+    "David Lane": 51, "Highbury Vale": 53, "Bulwell": 55,
+    "Bulwell Forest": 57, "Moor Bridge": 59, "Butlers Hill": 61,
+    "Hucknall": 63
+}
+
+# ✅ FIX: NETWORK is now GLOBAL
+NETWORK = {
+    "CliftonPhoenix": CLIFTONPHOENIX,
+    "TotonHucknall": TOTONHUCKNALL,
+}
+
+# ============================================================
+# MODE: JOURNEY MAP
+# ============================================================
 if mode == "Journey Map":
     st.header("Journey Map")
-    # --- Standalone Journey Map Feature ---
+
     stops = [
-        "Toton Lane", "Inham Road","Eskdale Dr","Bramcote Ln","Cator Ln","High Rd Cent Coll","Chilwell Rd",
-        "Beeston Centre","Middle St","University Bl'vrd", "Uni of Nottingham","QMC","Gregory St","NG2",
-        "Meadows Way West","Station","Lace Market","Old Market Square", "Royal Centre", "Nottingham Trent Uni","High School",
-        "The Forest","Noel St", "Beaconsfield St","Shipstone St","Wilkinson St","Basford","David Lane","Highbury Vale",
-        "Bulwell","Bulwell Forest","Moor Bridge","Butlers Hill","Hucknall"
+        "Toton Lane","Inham Road","Eskdale Dr","Bramcote Ln","Cator Ln","High Rd Cent Coll",
+        "Chilwell Rd","Beeston Centre","Middle St","University Bl'vrd","Uni of Nottingham",
+        "QMC","Gregory St","NG2","Meadows Way West","Station","Lace Market",
+        "Old Market Square","Royal Centre","Nottingham Trent Uni","High School",
+        "The Forest","Noel St","Beaconsfield St","Shipstone St","Wilkinson St",
+        "Basford","David Lane","Highbury Vale","Bulwell","Bulwell Forest",
+        "Moor Bridge","Butlers Hill","Hucknall"
     ]
 
     start_name = st.selectbox("Choose start stop", stops)
     end_name   = st.selectbox("Choose end stop", stops)
 
     if st.button("Map My Journey"):
-
         i1 = stops.index(start_name)
         i2 = stops.index(end_name)
-
         if i1 > i2:
             i1, i2 = i2, i1
 
         segment = stops[i1 : i2 + 1]
-                
         spacing = 150
         radius = 10
         y = 50
         total_width = len(segment) * spacing + 100
-        svg = f'<svg width="{total_width}" height="150" style="max-width:none; width:{total_width}px; display:block;" xmlns="http://www.w3.org/2000/svg">'
 
+        svg = f'<svg width="{total_width}" height="150" style="max-width:none; width:{total_width}px; display:block;" xmlns="http://www.w3.org/2000/svg">'
 
         for i in range(len(segment) - 1):
             x1 = i * spacing + 50
@@ -133,7 +181,6 @@ if mode == "Journey Map":
 
         svg += "</svg>"
 
-        # MOBILE-FRIENDLY HORIZONTAL SCROLL WRAPPER
         st.markdown(
             f"""
             <div style="overflow-x: auto; white-space: nowrap; padding-bottom: 10px;">
@@ -146,7 +193,7 @@ if mode == "Journey Map":
 # ============================================================
 # MODE: FIRST & LAST TRAMS
 # ============================================================
-if mode == "First & last trams":
+elif mode == "First & last trams":
 
     st.write("First and last trams")
 
@@ -170,185 +217,150 @@ if mode == "First & last trams":
 # ============================================================
 # MODE: TRIP TIME CALCULATOR
 # ============================================================
+elif mode == "Trip time calculator":
 
-# ---- Fare model ----
-SHORT_HOP_THRESHOLD_MIN = 20
-CONTACTLESS_SHORT_HOP = 1.50
-MACHINE_SHORT_HOP = 2.00
-CONTACTLESS_SINGLE = 3.50
-MACHINE_SINGLE = 3.50
-CONTACTLESS_DAILY_CAP = 5.65
+    # ---- Fare model ----
+    SHORT_HOP_THRESHOLD_MIN = 20
+    CONTACTLESS_SHORT_HOP = 1.50
+    MACHINE_SHORT_HOP = 2.00
+    CONTACTLESS_SINGLE = 3.50
+    MACHINE_SINGLE = 3.50
+    CONTACTLESS_DAILY_CAP = 5.65
 
-def pretty_minutes(m: float) -> str:
-    if m != m:
-        return "N/A"
-    return f"{int(m)} minutes" if m.is_integer() else f"{m:.1f} minutes"
+    def pretty_minutes(m: float) -> str:
+        if m != m:
+            return "N/A"
+        return f"{int(m)} minutes" if m.is_integer() else f"{m:.1f} minutes"
 
-def estimate_single_fare(journey_minutes, payment_method):
-    if journey_minutes <= SHORT_HOP_THRESHOLD_MIN:
-        return CONTACTLESS_SHORT_HOP if payment_method == "contactless" else MACHINE_SHORT_HOP
-    return CONTACTLESS_SINGLE if payment_method == "contactless" else MACHINE_SINGLE
+    def estimate_single_fare(journey_minutes, payment_method):
+        if journey_minutes <= SHORT_HOP_THRESHOLD_MIN:
+            return CONTACTLESS_SHORT_HOP if payment_method == "contactless" else MACHINE_SHORT_HOP
+        return CONTACTLESS_SINGLE if payment_method == "contactless" else MACHINE_SINGLE
 
-def apply_daily_cap(current_total, new_fare, payment_method):
-    if payment_method != "contactless":
-        return current_total + new_fare, new_fare
-    before = current_total
-    after = min(before + new_fare, CONTACTLESS_DAILY_CAP)
-    return after, after - before
+    def apply_daily_cap(current_total, new_fare, payment_method):
+        if payment_method != "contactless":
+            return current_total + new_fare, new_fare
+        before = current_total
+        after = min(before + new_fare, CONTACTLESS_DAILY_CAP)
+        return after, after - before
 
-# ---- Network hub tables ----
-HUBS = ["Station", "David Lane"]
+    HUBS = ["Station", "David Lane"]
 
-CLIFTONPHOENIX = {
-    "Clifton South": 0, "Summerwood Lane": 2, "Holy Trinity": 4,
-    "Clifton Centre": 5, "Rivergreen": 5.9, "Southchurch Dr N": 7.7,
-    "Ruddington Lane": 10.6, "Compton Acres": 11.4, "Wilford Lane": 13,
-    "Wilford Village": 14.4, "Meadows Embankment": 17.2, "Queens Walk": 18.37,
-    "Station": 21, "Lace Market": 23.14, "Old Market Sq": 24, "Royal Centre": 25.75,
-    "Nott Trent Uni": 27.3, "High School": 28.7, "The Forest": 32,
-    "Hyson Gr Market": 33.5, "Radford Rd": 36, "Wilkinson St": 37,
-    "Basford": 39.27, "David Lane": 41, "Highbury Vale": 43,
-    "Cinderhill": 44.6, "Phoenix Park": 46
-}
+    TIME_WINDOWS = {
+        "01:00-06:00": None,
+        "06:00-07:00": 15,
+        "07:00-10:00": 7,
+        "10:00-15:00": 10,
+        "15:00-19:00": 7,
+        "19:00-21:00": 10,
+        "21:00-01:00": 15,
+    }
 
-TOTONHUCKNALL = {
-    "Toton": 0, "Inham Road": 3, "Eskdale Drive": 5, "Bramcote Lane": 6,
-    "Cator Lane": 8, "High Road": 10, "Chilwell Road": 11,
-    "Beeston Centre": 12, "Middle Street": 16,
-    "University Boulevard": 18.5, "University Of Nottingham": 20,
-    "QMC": 22, "Gregory Street": 24, "NG2": 26, "Meadows Way West": 28.5,
-    "Station": 31, "Lace Market": 32.5, "Old Market Sq": 34,
-    "Royal Centre": 36, "Nott Trent Uni": 38, "High School": 40,
-    "The Forest": 42, "Noel St": 43.25, "Beaconsfield St": 44.5,
-    "Shipstone St": 45.75, "Wilkinson St": 47, "Basford": 49,
-    "David Lane": 51, "Highbury Vale": 53, "Bulwell": 55,
-    "Bulwell Forest": 57, "Moor Bridge": 59, "Butlers Hill": 61,
-    "Hucknall": 63
-}
+    def minutes_since_midnight(t: time) -> int:
+        return t.hour * 60 + t.minute
 
-NETWORK = {
-    "CliftonPhoenix": CLIFTONPHOENIX,
-    "TotonHucknall": TOTONHUCKNALL,
-}
+    def map_time_to_window(t_min: int) -> str:
+        if 60 <= t_min < 360:
+            return "01:00-06:00"
+        if 360 <= t_min < 420:
+            return "06:00-07:00"
+        if 420 <= t_min < 600:
+            return "07:00-10:00"
+        if 600 <= t_min < 900:
+            return "10:00-15:00"
+        if 900 <= t_min < 1140:
+            return "15:00-19:00"
+        if 1140 <= t_min < 1260:
+            return "19:00-21:00"
+        return "21:00-01:00"
 
-# ---- Headways ----
-TIME_WINDOWS = {
-    "01:00-06:00": None,
-    "06:00-07:00": 15,
-    "07:00-10:00": 7,
-    "10:00-15:00": 10,
-    "15:00-19:00": 7,
-    "19:00-21:00": 10,
-    "21:00-01:00": 15,
-}
+    def mean_connection_wait_from_headway(headway: int) -> float:
+        return headway / 2.0
 
-def minutes_since_midnight(t: time) -> int:
-    return t.hour * 60 + t.minute
+    if "daily_spend" not in st.session_state:
+        st.session_state.daily_spend = 0.0
 
-def map_time_to_window(t_min: int) -> str:
-    if 60 <= t_min < 360:
-        return "01:00-06:00"
-    if 360 <= t_min < 420:
-        return "06:00-07:00"
-    if 420 <= t_min < 600:
-        return "07:00-10:00"
-    if 600 <= t_min < 900:
-        return "10:00-15:00"
-    if 900 <= t_min < 1140:
-        return "15:00-19:00"
-    if 1140 <= t_min < 1260:
-        return "19:00-21:00"
-    return "21:00-01:00"
+    payment_method = st.radio(
+        "Payment method",
+        ["contactless", "machine"],
+        horizontal=True
+    )
 
-def mean_connection_wait_from_headway(headway: int) -> float:
-    return headway / 2.0
+    col1, col2 = st.columns(2)
+    with col1:
+        origin_line = st.selectbox("Origin line", list(NETWORK.keys()), index=0)
+        origin_station = st.selectbox("Origin station", sorted(NETWORK[origin_line].keys()), index=0)
+    with col2:
+        dest_line = st.selectbox("Destination line", list(NETWORK.keys()), index=1)
+        dest_station = st.selectbox("Destination station", sorted(NETWORK[dest_line].keys()), index=0)
 
-# ---- Trip calculator UI ----
-if "daily_spend" not in st.session_state:
-    st.session_state.daily_spend = 0.0
+    chosen_hub = st.selectbox("Choose interchange hub", HUBS)
 
-payment_method = st.radio(
-    "Payment method",
-    ["contactless", "machine"],
-    horizontal=True
-)
+    time_choice = st.radio("Arrival time", ("Now", "Pick time"), index=0)
+    t = datetime.now().time() if time_choice == "Now" else st.time_input("Pick arrival time")
 
-col1, col2 = st.columns(2)
-with col1:
-    origin_line = st.selectbox("Origin line", list(NETWORK.keys()), index=0)
-    origin_station = st.selectbox("Origin station", sorted(NETWORK[origin_line].keys()), index=0)
-with col2:
-    dest_line = st.selectbox("Destination line", list(NETWORK.keys()), index=1)
-    dest_station = st.selectbox("Destination station", sorted(NETWORK[dest_line].keys()), index=0)
+    window = map_time_to_window(minutes_since_midnight(t))
+    headway = TIME_WINDOWS[window]
 
-chosen_hub = st.selectbox("Choose interchange hub", HUBS)
-
-time_choice = st.radio("Arrival time", ("Now", "Pick time"), index=0)
-t = datetime.now().time() if time_choice == "Now" else st.time_input("Pick arrival time")
-
-window = map_time_to_window(minutes_since_midnight(t))
-headway = TIME_WINDOWS[window]
-
-if st.button("Calculate trip time"):
-    if origin_station not in NETWORK[origin_line]:
-        st.error("Origin station not found on selected line.")
-    elif dest_station not in NETWORK[dest_line]:
-        st.error("Destination station not found on selected line.")
-    else:
-        if headway is None:
-            st.subheader("No service in this time window")
-            st.write(f"Time window: {window} — no trams")
+    if st.button("Calculate trip time"):
+        if origin_station not in NETWORK[origin_line]:
+            st.error("Origin station not found on selected line.")
+        elif dest_station not in NETWORK[dest_line]:
+            st.error("Destination station not found on selected line.")
         else:
-            mean_wait = mean_connection_wait_from_headway(headway)
-
-            if origin_line == dest_line:
-                o2h = NETWORK[origin_line][origin_station]
-                d2h = NETWORK[dest_line][dest_station]
-                travel_minutes = abs(o2h - d2h)
-                journey_minutes = travel_minutes
-
-                st.subheader("Result (same line)")
-                st.markdown("---")
-                st.markdown(
-                    f"Time window: {window} — "
-                    f"Frequency: every {headway} minutes"
-                )
-                st.write(f"- Journey time: {pretty_minutes(journey_minutes)}")
-                st.write(f"- {origin_station} → {dest_station} on {origin_line}")
-
+            if headway is None:
+                st.subheader("No service in this time window")
+                st.write(f"Time window: {window} — no trams")
             else:
-                dist_origin = NETWORK[origin_line][origin_station]
-                dist_dest = NETWORK[dest_line][dest_station]
+                mean_wait = mean_connection_wait_from_headway(headway)
 
-                o2h = abs(NETWORK[origin_line][origin_station] - NETWORK[origin_line][chosen_hub])
-                d2h = abs(NETWORK[dest_line][dest_station] - NETWORK[dest_line][chosen_hub])
+                if origin_line == dest_line:
+                    o2h = NETWORK[origin_line][origin_station]
+                    d2h = NETWORK[dest_line][dest_station]
+                    travel_minutes = abs(o2h - d2h)
+                    journey_minutes = travel_minutes
 
-                travel_minutes = o2h + d2h
-                journey_minutes = travel_minutes + mean_wait
+                    st.subheader("Result (same line)")
+                    st.markdown("---")
+                    st.markdown(
+                        f"Time window: {window} — "
+                        f"Frequency: every {headway} minutes"
+                    )
+                    st.write(f"- Journey time: {pretty_minutes(journey_minutes)}")
+                    st.write(f"- {origin_station} → {dest_station} on {origin_line}")
 
-                st.subheader("Result (cross line)")
-                st.markdown("---")
-                st.markdown(
-                    f"Time window: {window} — every {headway} minutes"
+                else:
+                    o2h = abs(NETWORK[origin_line][origin_station] - NETWORK[origin_line][chosen_hub])
+                    d2h = abs(NETWORK[dest_line][dest_station] - NETWORK[dest_line][chosen_hub])
+
+                    travel_minutes = o2h + d2h
+                    journey_minutes = travel_minutes + mean_wait
+
+                    st.subheader("Result (cross line)")
+                    st.markdown("---")
+                    st.markdown(
+                        f"Time window: {window} — every {headway} minutes"
+                    )
+                    st.write(f"- Hub used: {chosen_hub}")
+                    st.write(f"- Journey time: {pretty_minutes(journey_minutes)}")
+                    st.write(f"- {origin_station} → {chosen_hub} → {dest_station}")
+                    st.write(f"- Mean wait (per connection): {pretty_minutes(mean_wait)}")
+
+                single_fare = estimate_single_fare(journey_minutes, payment_method)
+                st.session_state.daily_spend, charged_now = apply_daily_cap(
+                    st.session_state.daily_spend,
+                    single_fare,
+                    payment_method
                 )
-                st.write(f"- Hub used: {chosen_hub}")
-                st.write(f"- Journey time: {pretty_minutes(journey_minutes)}")
-                st.write(f"- {origin_station} → {chosen_hub} → {dest_station}")
-                st.write(f"- Mean wait (per connection): {pretty_minutes(mean_wait)}")
 
-            single_fare = estimate_single_fare(journey_minutes, payment_method)
-            st.session_state.daily_spend, charged_now = apply_daily_cap(
-                st.session_state.daily_spend,
-                single_fare,
-                payment_method
-            )
-
-            st.info(
-                f"Single journey fare: £{single_fare:.2f}\n"
-                f"Charge for this journey (after cap): £{charged_now:.2f}\n"
-                f"Total paid today (NET contactless cap): £{st.session_state.daily_spend:.2f}"
-            )
-
+                st.info(
+                    f"Single journey fare: £{single_fare:.2f}\n"
+                    f"Charge for this journey (after cap): £{charged_now:.2f}\n"
+                    f"Total paid today (NET contactless cap): £{st.session_state.daily_spend:.2f}"
+)
+# ============================================================
+# MODE: MINI‑MAP
+# ============================================================
 elif mode == "Mini‑Map":
 
     import base64
@@ -361,6 +373,7 @@ elif mode == "Mini‑Map":
     line = st.selectbox("Choose your line", list(NETWORK.keys()))
     station = st.selectbox("Choose your station", list(NETWORK[line].keys()))
 
+    # Sort stops by distance (descending)
     stops_sorted = sorted(NETWORK[line].items(), key=lambda x: x[1], reverse=True)
     names = [s[0] for s in stops_sorted]
 
