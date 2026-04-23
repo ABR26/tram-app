@@ -654,7 +654,7 @@ def run_next_tram_mode():
 # 3. TOP-LEVEL MODE SELECTOR
 # =========================================================
 
-st.title("🚋 Nottingham Tram Tools")
+st.title("🚋 Nottingham Tram App")
 
 mode = st.radio(
     "Select mode:",
