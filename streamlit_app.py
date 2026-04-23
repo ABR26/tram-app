@@ -1,423 +1,668 @@
-#///Version 3.0 10/4/26 \\\
-# /// Version 4.0 – Toton + Phoenix integrated backend ///
-
+#VERSION 2.0# 23-04-26#
 import streamlit as st
-from datetime import datetime, time
+import pandas as pd
 
-st.set_page_config(page_title="NET Tram", layout="centered")
+# =========================================================
+# 1. TIMETABLE MODE – ORIGINAL 4 CODEBASES
+# =========================================================
 
-# --- Top-right icon ---
-colA, colB, colC = st.columns([1, 1, 1])
-with colC:
-    st.image("assets/download.jpeg.jpg", width=1200)
-
-st.markdown("<h1 style='color: green;'>Nottingham Tram NET App</h1>", unsafe_allow_html=True)
-
-# ===========================================================
-# MODE SELECTOR
-# ============================================================
-mode = st.radio(
-    "Mode",
-    ["Trip time calculator", "First & last trams", "Mini‑Map", "Journey Map"],
-    horizontal=True
-)
-
-# ============================================================
-# SHARED HELPERS
-# ============================================================
-def to_minutes(t):
-    h, m = map(int, t.split(":"))
-    return h * 60 + m
-
-def to_hhmm(m):
-    m = int(m) % (24 * 60)
-    return f"{m // 60:02d}:{m % 60:02d}"
-
-# ============================================================
-# LINE DEFINITIONS (UNIFIED BACKEND)
-# ============================================================
-
-LINES = {
-    "Toton–Hucknall": {
-        "runtime": 63,
-        "anchors": {
-            "south_first_dep": "06:01",
-            "south_last_dep": "01:05",
-            "north_first_dep": "06:04",
-            "north_last_dep": "00:15",
-        },
-        "ratios": {
-            "Toton Lane": 0.00, "Inham Road":0.0536, "Eskdale Dr":0.0777, "Bramcote Ln":0.0992,
-            "Cator Ln":0.126, "High Rd":0.1501, "Chilwell Rd":0.1717, "Beeston Centre": 0.1905,
-            "Middle St":0.254, "University Boulevard":0.23, "University Of Nottingham":0.317,
-            "QMC": 0.35, "Gregory Street":0.381, "Meadows Way West":0.452, "NG2": 0.41,
-            "Nottingham Station": 0.492, "Lace Market":0.515, "Old Market Square": 0.539,
-            "Royal Centre":0.57, "Nottingham Trent Uni":0.603, "High School":0.635,
-            "The Forest": 0.66, "Noel St":0.675, "Beaconsfield St":0.69, "Shipstone St":0.733,
-            "Wilkinson Street": 0.746, "Basford":0.777, "David Lane":0.81, "Highbury Vale": 0.84,
-            "Bulwell": 0.87, "Bulwell Forest":0.873, "Moor Bridge":0.905, "Butlers Hill":0.97,
-            "Hucknall": 1.00,
-        }
-    },
-
-    "Phoenix–Clifton": {
-        "runtime": 46,
-        "anchors": {
-            "south_first_dep": "06:04",
-            "south_last_dep": "00:15",
-            "north_first_dep": "06:02",
-            "north_last_dep": "00:48",
-        },
-        "ratios": {
-            "Phoenix Park": 1.000,"Cinderhill": 0.0311,"Highbury Vale": 0.0653,"David Lane": 0.11,
-            "Basford": 0.1464,"Wilkinson Street": 0.1957, "Radford Road":0.216,
-            "Hyson Green Market":0.2707, "The Forest": 0.3043, "High School":0.376,
-            "Nott Trent Uni":0.4066, "Royal Centre":0.4395, "Old Market Square": 0.4782,
-            "Lace Market":0.4968, "Nottingham Station": 0.54347, "Queens Walk":0.6005,
-            "Meadows Embankment": 0.626, "Wilford Village":0.686, "Wilford Lane":0.7173,
-            "Compton Acres": 0.7528, "Ruddington Lane":0.7689, "Southchurch Drive Nth":0.8334,
-            "Rivergreen":0.872, "Clifton Centre": 0.891, "Holy Trinity":0.9137,
-            "Summerwood Lane":0.9554, "Clifton South": 0.000
-        }
-    }
+# Hucknall → Toton
+StopRefToton = {
+    "Hucknall":0,"Butlers Hill":2,"Moor Bridge":5,"Bulwell Forest":7,"Bulwell":8,
+    "Highbury Vale North East":10,"David Lane":12,"Basford":13,"Wilkinson St":16,"Radford Road":17,
+    "Hyson Green Market":19,"The Forest":21,"High School":23,"Nottingham Trent University":25,
+    "Royal Centre":27,"Old Market Square":28,"Lace Market":30,"Station":32,"Meadows Way West":34,
+    "NG2":36,"Gregory Street":38,"QMC":40,"University of Nottingham":42,"University Boulevard":46,
+    "Middle Street":48,"Beeston Centre":50,"Chilwell Road":52,"High Road Central College":53,
+    "Cator Lane":55,"Bramcote Lane":57,"Eskdale Drive":59,"Inham Road":60,"Toton":63
 }
 
-# ============================================================
-# INFERENCE ENGINE
-# ============================================================
-def infer_first_last(line_name, stop):
-    line = LINES[line_name]
-    r = line["ratios"][stop]
-    runtime = line["runtime"]
-    a = line["anchors"]
-
-    south_first = to_hhmm(to_minutes(a["south_first_dep"]) + r * runtime)
-    south_last = to_hhmm(to_minutes(a["south_last_dep"]) + r * runtime)
-
-    north_first = to_hhmm(to_minutes(a["north_first_dep"]) + (1 - r) * runtime)
-    north_last = to_hhmm(to_minutes(a["north_last_dep"]) + (1 - r) * runtime)
-
-    return south_first, south_last, north_first, north_last
-
-# ============================================================
-# NETWORK TABLES (GLOBAL — FIXED)
-# ============================================================
-
-CLIFTONPHOENIX = {
-    "Clifton South": 0, "Summerwood Lane": 2, "Holy Trinity": 4,
-    "Clifton Centre": 5, "Rivergreen": 5.9, "Southchurch Dr N": 7.7,
-    "Ruddington Lane": 10.6, "Compton Acres": 11.4, "Wilford Lane": 13,
-    "Wilford Village": 14.4, "Meadows Embankment": 17.2, "Queens Walk": 18.37,
-    "Station": 21, "Lace Market": 23.14, "Old Market Sq": 24,
-    "Royal Centre": 25.75, "Nott Trent Uni": 27.3, "High School": 28.7,
-    "The Forest": 32, "Hyson Gr Market": 33.5, "Radford Rd": 36,
-    "Wilkinson St": 37, "Basford": 39.27, "David Lane": 41,
-    "Highbury Vale": 43, "Cinderhill": 44.6, "Phoenix Park": 46
+# Toton → Hucknall
+StopRefHucknall = {
+    "Hucknall":63,"Butlers Hill":61,"Moor Bridge":58,"Bulwell Forest":57,"Bulwell":55,
+    "Highbury Vale North East":53,"David Lane":51,"Basford":50,"Wilkinson St":47,"Shipstone Street":46,"Beaconsfield Street":44,
+    "Noel Street":43,"The Forest":42,"High School":40,"Nottingham Trent University":37,
+    "Royal Centre":35,"Old Market Square":34,"Lace Market":33,"Station":31,"Meadows Way West":28,
+    "NG2":26,"Gregory Street":24,"QMC":22,"University of Nottingham":19,"University Boulevard":16,
+    "Middle Street":14,"Beeston Centre":12,"Chilwell Road":10,"High Road Central College":9,
+    "Cator Lane":7,"Bramcote Lane":6,"Eskdale Drive":4,"Inham Road":2,"Toton":0
 }
 
-TOTONHUCKNALL = {
-    "Toton": 0, "Inham Road": 3, "Eskdale Drive": 5, "Bramcote Lane": 6,
-    "Cator Lane": 8, "High Road": 10, "Chilwell Road": 11,
-    "Beeston Centre": 12, "Middle Street": 16,
-    "University Boulevard": 18.5, "University Of Nottingham": 20,
-    "QMC": 22, "Gregory Street": 24, "NG2": 26, "Meadows Way West": 28.5,
-    "Station": 31, "Lace Market": 32.5, "Old Market Sq": 34,
-    "Royal Centre": 36, "Nott Trent Uni": 38, "High School": 40,
-    "The Forest": 42, "Noel St": 43.25, "Beaconsfield St": 44.5,
-    "Shipstone St": 45.75, "Wilkinson St": 47, "Basford": 49,
-    "David Lane": 51, "Highbury Vale": 53, "Bulwell": 55,
-    "Bulwell Forest": 57, "Moor Bridge": 59, "Butlers Hill": 61,
-    "Hucknall": 63
+# Phoenix Park → Clifton South
+StopRefClifton = {
+    "Phoenix Park":0,"Cinderhill":1,"Highbury Vale South West":2,"David Lane":4,
+    "Basford":5,"Wilkinson Street":8,"Radford Road":10,"Hyson Green Market":12,"The Forest":14,
+    "High School":16,"Nottingham Trent University":18,"Royal Centre":20,"Old Market Square":21,
+    "Lace Market":23,"Station":25,"Queens Walk":27,"Meadows Embankment":28,"Wilford Village":29,
+    "Wilford Lane":32,"Compton Acres":34,"Ruddington Lane":35,"Southchurch Drive North":38,"Rivergreen":39,
+    "Clifton Centre":40,"Holy Trinity":43,"Summerwood Lane":45,"Clifton South":46
 }
 
-# ✅ FIX: NETWORK is now GLOBAL
-NETWORK = {
-    "CliftonPhoenix": CLIFTONPHOENIX,
-    "TotonHucknall": TOTONHUCKNALL,
+# Clifton South → Phoenix Park
+StopRefPhoenix = {
+    "Phoenix Park":46,"Cinderhill":44,"Highbury Vale South West":43,"David Lane":42,
+    "Basford":41,"Wilkinson Street":39,"Shipstone Street":38,"Beaconsfield Street":36,"Noel Street":34,"The Forest":32,
+    "High School":30,"Nottingham Trent University":27,"Royal Centre":25,"Old Market Square":24,
+    "Lace Market":23,"Station":21,"Queens Walk":19,"Meadows Embankment":17,"Wilford Village":16,
+    "Wilford Lane":13,"Compton Acres":11,"Ruddington Lane":10,"Southchurch Drive North":8,"Rivergreen":6,
+    "Clifton Centre":5,"Holy Trinity":3,"Summerwood Lane":1,"Clifton South":0
 }
 
-# ============================================================
-# MODE: JOURNEY MAP
-# ============================================================
-if mode == "Journey Map":
-    st.header("Journey Map")
+def timetable_hucknall_to_toton(stop):
+    StopChoice = StopRefToton[stop]
 
-    stops = [
-        "Toton Lane","Inham Road","Eskdale Dr","Bramcote Ln","Cator Ln","High Rd Cent Coll",
-        "Chilwell Rd","Beeston Centre","Middle St","University Bl'vrd","Uni of Nottingham",
-        "QMC","Gregory St","NG2","Meadows Way West","Station","Lace Market",
-        "Old Market Square","Royal Centre","Nottingham Trent Uni","High School",
-        "The Forest","Noel St","Beaconsfield St","Shipstone St","Wilkinson St",
-        "Basford","David Lane","Highbury Vale","Bulwell","Bulwell Forest",
-        "Moor Bridge","Butlers Hill","Hucknall"
-    ]
-
-    start_name = st.selectbox("Choose start stop", stops)
-    end_name   = st.selectbox("Choose end stop", stops)
-
-    if st.button("Map My Journey"):
-        i1 = stops.index(start_name)
-        i2 = stops.index(end_name)
-        if i1 > i2:
-            i1, i2 = i2, i1
-
-        segment = stops[i1 : i2 + 1]
-        spacing = 150
-        radius = 10
-        y = 50
-        total_width = len(segment) * spacing + 100
-
-        svg = f'<svg width="{total_width}" height="150" style="max-width:none; width:{total_width}px; display:block;" xmlns="http://www.w3.org/2000/svg">'
-
-        for i in range(len(segment) - 1):
-            x1 = i * spacing + 50
-            x2 = (i + 1) * spacing + 50
-            svg += f"<line x1='{x1}' y1='{y}' x2='{x2}' y2='{y}' stroke='Green' stroke-width='10' />"
-
-        for i, name in enumerate(segment):
-            x = i * spacing + 50
-            svg += f"<circle cx='{x}' cy='{y}' r='{radius}' fill='Purple' stroke='Green' stroke-width='4' />"
-            svg += f"<text x='{x}' y='{y+30}' font-size='18' text-anchor='middle'>{name}</text>"
-
-        svg += "</svg>"
-
-        st.markdown(
-            f"""
-            <div style="overflow-x: auto; white-space: nowrap; padding-bottom: 10px;">
-                {svg}
-            </div>
-            """,
-            unsafe_allow_html=True
-        )
-
-# ============================================================
-# MODE: FIRST & LAST TRAMS
-# ============================================================
-elif mode == "First & last trams":
-
-    st.write("First and last trams")
-
-    line_choice = st.selectbox("Line:", list(LINES.keys()))
-    stop_choice = st.selectbox("Stop:", list(LINES[line_choice]["ratios"].keys()))
-
-    sb_first, sb_last, nb_first, nb_last = infer_first_last(line_choice, stop_choice)
-
-    st.write(f"Stop: {stop_choice}")
-    st.write("Northbound")
-    st.write(f"First tram: {sb_first}")
-    st.write(f"Last tram: {sb_last}")
-
-    st.write("")
-    st.write("Southbound")
-    st.write(f"First tram: {nb_first}")
-    st.write(f"Last tram: {nb_last}")
-
-    st.stop()
-
-# ============================================================
-# MODE: TRIP TIME CALCULATOR
-# ============================================================
-elif mode == "Trip time calculator":
-
-    # ---- Fare model ----
-    SHORT_HOP_THRESHOLD_MIN = 20
-    CONTACTLESS_SHORT_HOP = 1.50
-    MACHINE_SHORT_HOP = 2.00
-    CONTACTLESS_SINGLE = 3.50
-    MACHINE_SINGLE = 3.50
-    CONTACTLESS_DAILY_CAP = 5.65
-
-    def pretty_minutes(m: float) -> str:
-        if m != m:
-            return "N/A"
-        return f"{int(m)} minutes" if m.is_integer() else f"{m:.1f} minutes"
-
-    def estimate_single_fare(journey_minutes, payment_method):
-        if journey_minutes <= SHORT_HOP_THRESHOLD_MIN:
-            return CONTACTLESS_SHORT_HOP if payment_method == "contactless" else MACHINE_SHORT_HOP
-        return CONTACTLESS_SINGLE if payment_method == "contactless" else MACHINE_SINGLE
-
-    def apply_daily_cap(current_total, new_fare, payment_method):
-        if payment_method != "contactless":
-            return current_total + new_fare, new_fare
-        before = current_total
-        after = min(before + new_fare, CONTACTLESS_DAILY_CAP)
-        return after, after - before
-
-    HUBS = ["Station", "David Lane"]
-
-    TIME_WINDOWS = {
-        "01:00-06:00": None,
-        "06:00-07:00": 15,
-        "07:00-10:00": 7,
-        "10:00-15:00": 10,
-        "15:00-19:00": 7,
-        "19:00-21:00": 10,
-        "21:00-01:00": 15,
+    LateStops = {
+        "Hucknall":0,"Butlers Hill":2,"Moor Bridge":5,"Bulwell Forest":7,"Bulwell":8,
+        "Highbury Vale North East":10,"David Lane":12,"Basford":13,"Wilkinson St":16,"Radford Road":17,
+        "Hyson Green Market":19,"The Forest":21,"High School":23,"Nottingham Trent University":25,
+        "Royal Centre":27,"Old Market Square":28,"Lace Market":30,"Station":32
     }
 
-    def minutes_since_midnight(t: time) -> int:
-        return t.hour * 60 + t.minute
+    EarlyStops = {
+        "The Forest":21,"High School":2,"Nottingham Trent University":4,
+        "Royal Centre":6,"Old Market Square":7,"Lace Market":9,"Station":11,"Meadows Way West":13,
+        "NG2":15,"Gregory Street":17,"QMC":19,"University of Nottingham":21,"University Boulevard":25,
+        "Middle Street":27,"Beeston Centre":29,"Chilwell Road":31,"High Road Central College":32,
+        "Cator Lane":34,"Bramcote Lane":36,"Eskdale Drive":38,"Inham Road":39,"Toton":42
+    }
 
-    def map_time_to_window(t_min: int) -> str:
-        if 60 <= t_min < 360:
-            return "01:00-06:00"
-        if 360 <= t_min < 420:
-            return "06:00-07:00"
-        if 420 <= t_min < 600:
-            return "07:00-10:00"
-        if 600 <= t_min < 900:
-            return "10:00-15:00"
-        if 900 <= t_min < 1140:
-            return "15:00-19:00"
-        if 1140 <= t_min < 1260:
-            return "19:00-21:00"
-        return "21:00-01:00"
+    LateStopTime = [1455]
+    EarlyStopTime = [316,331,345,355,370]
+    Directory = [364,420,559,900,1139,1260,1440]
+    Freq = [15,7,10,7,10,15]
 
-    def mean_connection_wait_from_headway(headway: int) -> float:
-        return headway / 2.0
+    SeedList = []
+    p,q,r,s,t,u = Directory[:6]
+    v = LateStopTime[0]
+    x = y = 0
 
-    if "daily_spend" not in st.session_state:
-        st.session_state.daily_spend = 0.0
+    for j in EarlyStopTime:
+        if stop in EarlyStops:
+            w = EarlyStopTime[y]
+            SeedList.append(w)
+            y += 1
 
-    payment_method = st.radio(
-        "Payment method",
-        ["contactless", "machine"],
-        horizontal=True
+    while p < Directory[1]:
+        SeedList.append(p); p += Freq[0]
+    while q < Directory[2]:
+        SeedList.append(q); q += Freq[1]
+    while r < Directory[3]:
+        SeedList.append(r); r += Freq[2]
+    while s < Directory[4]:
+        SeedList.append(s); s += Freq[3]
+    while t < Directory[5]:
+        SeedList.append(t); t += Freq[4]
+    while u < Directory[6]:
+        SeedList.append(u); u += Freq[5]
+
+    for i in LateStopTime:
+        if stop in LateStops:
+            v = LateStopTime[x]
+            SeedList.append(v)
+            x += 1
+
+    SeedList2 = [t + StopChoice for t in SeedList]
+    SeedListHour = [t//60 for t in SeedList2]
+    SeedListMin = [t%60 for t in SeedList2]
+
+    if SeedListHour:
+        SeedListHour.pop(-1)
+        SeedListMin.pop(-1)
+
+    return list(zip(SeedListHour, SeedListMin))
+
+
+def timetable_toton_to_hucknall(stop):
+    StopChoice = StopRefHucknall[stop]
+
+    EarlyStops = {
+        "Hucknall":32,"Butlers Hill":30,"Moor Bridge":27,"Bulwell Forest":26,"Bulwell":24,
+        "Highbury Vale North East":22,"David Lane":20,"Basford":19,"Wilkinson St":16,"Shipstone Street":15,"Beaconsfield Street":13,
+        "Noel Street":12,"The Forest":11,"High School":9,"Nottingham Trent University":6,
+        "Royal Centre":4,"Old Market Square":3,"Lace Market":2,"Station":0
+    }
+
+    LateStops = {
+        "Wilkinson St":47,"Shipstone Street":46,"Beaconsfield Street":44,
+        "Noel Street":43,"The Forest":42,"High School":40,"Nottingham Trent University":37,
+        "Royal Centre":35,"Old Market Square":34,"Lace Market":33,"Station":31,"Meadows Way West":28,
+        "NG2":26,"Gregory Street":24,"QMC":22,"University of Nottingham":19,"University Boulevard":16,
+        "Middle Street":14,"Beeston Centre":12,"Chilwell Road":10,"High Road Central College":9,
+        "Cator Lane":7,"Bramcote Lane":6,"Eskdale Drive":4,"Inham Road":2,"Toton":0
+    }
+
+    LateStopTime = [1460,1476,1490,1505]
+    EarlyStopTime = [300,315]
+    Directory = [364,420,559,900,1139,1260,1440]
+    Freq = [15,7,10,7,10,15]
+
+    SeedList = []
+    p,q,r,s,t,u = Directory[:6]
+    v = LateStopTime[0]
+    x = y = 0
+
+    for j in EarlyStopTime:
+        if stop in LateStops:
+            w = EarlyStopTime[y]
+            SeedList.append(w)
+            y += 1
+
+    while p < Directory[1]:
+        SeedList.append(p); p += Freq[0]
+    while q < Directory[2]:
+        SeedList.append(q); q += Freq[1]
+    while r < Directory[3]:
+        SeedList.append(r); r += Freq[2]
+    while s < Directory[4]:
+        SeedList.append(s); s += Freq[3]
+    while t < Directory[5]:
+        SeedList.append(t); t += Freq[4]
+    while u < Directory[6]:
+        SeedList.append(u); u += Freq[5]
+
+    for i in LateStopTime:
+        if stop in LateStops:
+            v = LateStopTime[x]
+            SeedList.append(v)
+            x += 1
+
+    SeedList2 = [t + StopChoice for t in SeedList]
+    SeedListHour = [t//60 for t in SeedList2]
+    SeedListMin = [t%60 for t in SeedList2]
+
+    if SeedListHour:
+        SeedListHour.pop(-1)
+        SeedListMin.pop(-1)
+
+    return list(zip(SeedListHour, SeedListMin))
+
+
+def timetable_phoenix_to_clifton(stop):
+    StopChoice = StopRefClifton[stop]
+
+    LateStops = {
+        "Phoenix Park":0,"Cinderhill":1,"Highbury Vale South West":2,"David Lane":4,
+        "Basford":5,"Wilkinson Street":8,"Radford Road":10,"Hyson Green Market":12,"The Forest":14,
+        "High School":16,"Nottingham Trent University":18,"Royal Centre":20,"Old Market Square":21,
+        "Lace Market":23,"Station":25
+    }
+
+    EarlyStops = {
+        "The Forest":0,"High School":2,"Nottingham Trent University":4,"Royal Centre":6,
+        "Old Market Square":7,"Lace Market":9,"Station":11,"Queens Walk":13,"Meadows Embankment":14,
+        "Wilford Village":15,"Wilford Lane":18,"Compton Acres":20,"Ruddington Lane":21,"Southchurch Drive North":24,
+        "Rivergreen":25,"Clifton Centre":26,"Holy Trinity":29,"Summerwood Lane":31,"Clifton South":32
+    }
+
+    LateStopTime = [1455]
+    EarlyStopTime = [327,342,356,363]
+    Directory = [364,420,559,900,1139,1260,1440]
+    Freq = [15,7,10,7,10,15]
+
+    SeedList = []
+    p,q,r,s,t,u = Directory[:6]
+    v = LateStopTime[0]
+    x = y = 0
+
+    for j in EarlyStopTime:
+        if stop in EarlyStops:
+            w = EarlyStopTime[y]
+            SeedList.append(w)
+            y += 1
+
+    while p < Directory[1]:
+        SeedList.append(p); p += Freq[0]
+    while q < Directory[2]:
+        SeedList.append(q); q += Freq[1]
+    while r < Directory[3]:
+        SeedList.append(r); r += Freq[2]
+    while s < Directory[4]:
+        SeedList.append(s); s += Freq[3]
+    while t < Directory[5]:
+        SeedList.append(t); t += Freq[4]
+    while u < Directory[6]:
+        SeedList.append(u); u += Freq[5]
+
+    for i in LateStopTime:
+        if stop in LateStops:
+            v = LateStopTime[x]
+            SeedList.append(v)
+            x += 1
+
+    SeedList2 = [t + StopChoice for t in SeedList]
+    SeedListHour = [t//60 for t in SeedList2]
+    SeedListMin = [t%60 for t in SeedList2]
+
+    if SeedListHour:
+        SeedListHour.pop(-1)
+        SeedListMin.pop(-1)
+
+    return list(zip(SeedListHour, SeedListMin))
+
+
+def timetable_clifton_to_phoenix(stop):
+    StopChoice = StopRefPhoenix[stop]
+
+    LateStops = {
+        "Shipstone Street":38,"Beaconsfield Street":36,"Noel Street":34,"The Forest":32,
+        "High School":30,"Nottingham Trent University":27,"Royal Centre":25,"Old Market Square":24,
+        "Lace Market":23,"Station":21,"Queens Walk":19,"Meadows Embankment":17,"Wilford Village":16,
+        "Wilford Lane":13,"Compton Acres":11,"Ruddington Lane":10,"Southchurch Drive North":8,"Rivergreen":6,
+        "Clifton Centre":5,"Holy Trinity":3,"Summerwood Lane":1,"Clifton South":0
+    }
+
+    EarlyStops = {
+        "Phoenix Park":25,"Cinderhill":23,"Highbury Vale South West":22,"David Lane":21,
+        "Basford":20,"Wilkinson Street":18,"Shipstone Street":17,"Beaconsfield Street":15,"Noel Street":13,"The Forest":11,
+        "High School":9,"Nottingham Trent University":6,"Royal Centre":4,"Old Market Square":3,
+        "Lace Market":2,"Station":0
+    }
+
+    LateStopTime = [1463,1473,1508]
+    EarlyStopTime = [368]
+    Directory = [364,420,559,900,1139,1260,1440]
+    Freq = [15,7,10,7,10,15]
+
+    SeedList = []
+    p,q,r,s,t,u = Directory[:6]
+    v = LateStopTime[0]
+    x = y = 0
+
+    for j in EarlyStopTime:
+        if stop in EarlyStops:
+            w = EarlyStopTime[y]
+            SeedList.append(w)
+            y += 1
+
+    while p < Directory[1]:
+        SeedList.append(p); p += Freq[0]
+    while q < Directory[2]:
+        SeedList.append(q); q += Freq[1]
+    while r < Directory[3]:
+        SeedList.append(r); r += Freq[2]
+    while s < Directory[4]:
+        SeedList.append(s); s += Freq[3]
+    while t < Directory[5]:
+        SeedList.append(t); t += Freq[4]
+    while u < Directory[6]:
+        SeedList.append(u); u += Freq[5]
+
+    for i in LateStopTime:
+        if stop in LateStops:
+            v = LateStopTime[x]
+            SeedList.append(v)
+            x += 1
+
+    SeedList2 = [t + StopChoice for t in SeedList]
+    SeedListHour = [t//60 for t in SeedList2]
+    SeedListMin = [t%60 for t in SeedList2]
+
+    if SeedListHour:
+        SeedListHour.pop(-1)
+        SeedListMin.pop(-1)
+
+    return list(zip(SeedListHour, SeedListMin))
+
+
+def run_timetable_mode():
+    st.subheader("Full Timetables")
+
+    route = st.radio(
+        "Select a route:",
+        [
+            "Hucknall → Toton Lane",
+            "Toton Lane → Hucknall",
+            "Phoenix Park → Clifton South",
+            "Clifton South → Phoenix Park"
+        ]
     )
 
-    col1, col2 = st.columns(2)
-    with col1:
-        origin_line = st.selectbox("Origin line", list(NETWORK.keys()), index=0)
-        origin_station = st.selectbox("Origin station", sorted(NETWORK[origin_line].keys()), index=0)
-    with col2:
-        dest_line = st.selectbox("Destination line", list(NETWORK.keys()), index=1)
-        dest_station = st.selectbox("Destination station", sorted(NETWORK[dest_line].keys()), index=0)
+    if route == "Hucknall → Toton Lane":
+        stop = st.selectbox("Choose your stop:", list(StopRefToton.keys()))
+    elif route == "Toton Lane → Hucknall":
+        stop = st.selectbox("Choose your stop:", list(StopRefHucknall.keys()))
+    elif route == "Phoenix Park → Clifton South":
+        stop = st.selectbox("Choose your stop:", list(StopRefClifton.keys()))
+    else:
+        stop = st.selectbox("Choose your stop:", list(StopRefPhoenix.keys()))
 
-    chosen_hub = st.selectbox("Choose interchange hub", HUBS)
-
-    time_choice = st.radio("Arrival time", ("Now", "Pick time"), index=0)
-    t = datetime.now().time() if time_choice == "Now" else st.time_input("Pick arrival time")
-
-    window = map_time_to_window(minutes_since_midnight(t))
-    headway = TIME_WINDOWS[window]
-
-    if st.button("Calculate trip time"):
-        if origin_station not in NETWORK[origin_line]:
-            st.error("Origin station not found on selected line.")
-        elif dest_station not in NETWORK[dest_line]:
-            st.error("Destination station not found on selected line.")
+    if st.button("Generate Timetable"):
+        if route == "Hucknall → Toton Lane":
+            timetable = timetable_hucknall_to_toton(stop)
+        elif route == "Toton Lane → Hucknall":
+            timetable = timetable_toton_to_hucknall(stop)
+        elif route == "Phoenix Park → Clifton South":
+            timetable = timetable_phoenix_to_clifton(stop)
         else:
-            if headway is None:
-                st.subheader("No service in this time window")
-                st.write(f"Time window: {window} — no trams")
-            else:
-                mean_wait = mean_connection_wait_from_headway(headway)
+            timetable = timetable_clifton_to_phoenix(stop)
 
-                if origin_line == dest_line:
-                    o2h = NETWORK[origin_line][origin_station]
-                    d2h = NETWORK[dest_line][dest_station]
-                    travel_minutes = abs(o2h - d2h)
-                    journey_minutes = travel_minutes
+        formatted = [f"{h:02d}:{m:02d}" for h, m in timetable]
+        df = pd.DataFrame({"Arrival Time": formatted})
 
-                    st.subheader("Result (same line)")
-                    st.markdown("---")
-                    st.markdown(
-                        f"Time window: {window} — "
-                        f"Frequency: every {headway} minutes"
-                    )
-                    st.write(f"- Journey time: {pretty_minutes(journey_minutes)}")
-                    st.write(f"- {origin_station} → {dest_station} on {origin_line}")
+        st.success(f"Timetable for **{stop}** on **{route}**")
+        st.table(df)
 
-                else:
-                    o2h = abs(NETWORK[origin_line][origin_station] - NETWORK[origin_line][chosen_hub])
-                    d2h = abs(NETWORK[dest_line][dest_station] - NETWORK[dest_line][chosen_hub])
 
-                    travel_minutes = o2h + d2h
-                    journey_minutes = travel_minutes + mean_wait
+# =========================================================
+# 2. NEXT TRAM (GTFS-STYLE) MODE – YOUR SECOND TOOL
+# =========================================================
 
-                    st.subheader("Result (cross line)")
-                    st.markdown("---")
-                    st.markdown(
-                        f"Time window: {window} — every {headway} minutes"
-                    )
-                    st.write(f"- Hub used: {chosen_hub}")
-                    st.write(f"- Journey time: {pretty_minutes(journey_minutes)}")
-                    st.write(f"- {origin_station} → {chosen_hub} → {dest_station}")
-                    st.write(f"- Mean wait (per connection): {pretty_minutes(mean_wait)}")
+# Dictionaries and parameters from Part 1
+StopSeed = {
+    "Toton":0,"Inham Road":2,"Eskdale Drive":4,"Bramcote Lane":6,"Cator lane":7,
+    "High Road Central College":9,"Chilwell Road":10,"Beeston Centre":12,"Middle Street":14,
+    "University Boulevard":16,"University of Nottingham":20,"QMC":22,"Gregory Street":24,"NG2":26,
+    "Meadows Way West":28,"Station":31,"Lace Market":33,"Old Market Square":34,"Royal Centre":35,
+    "Nottingham Trent University":37,"High School":40,"The Forest":42,"Noel Street":43,"Beaconsfield Street":44,
+    "Shipstone Street":46,"Wilkinson St":47,"Basford":50,"David Lane":51,"Highbury Vale North East":53,"Bulwell":55,
+    "Bulwell Forest":57,"Moor Bridge":58,"Butlers Hill":61,"Hucknall":63
+}
 
-                single_fare = estimate_single_fare(journey_minutes, payment_method)
-                st.session_state.daily_spend, charged_now = apply_daily_cap(
-                    st.session_state.daily_spend,
-                    single_fare,
-                    payment_method
-                )
+StopSeedEarly = {
+    "Station":0,"Lace Market":2,"Old Market Sq":3,"Royal Centre":4,
+    "Nottingham Trent University":6,"High School":9,"The Forest":11,"Noel Street":12,"Beaconsfield Street":13,
+    "Shipstone Street":15,"Wilkinson St":16,"Basford":19,"David Lane":20,"Highbury Vale North East":22,"Bulwell":24,
+    "Bulwell Forest":26,"Moor Bridge":28,"Butlers Hill":30,"Hucknall":32
+}
 
-                st.info(
-                    f"Single journey fare: £{single_fare:.2f}\n"
-                    f"Charge for this journey (after cap): £{charged_now:.2f}\n"
-                    f"Total paid today (NET contactless cap): £{st.session_state.daily_spend:.2f}"
+StopSeedLate = {
+    "Toton":0,"Inham Road":2,"Eskdale Drive":4,"Bramcote Lane":6,"Cator lane":7,
+    "High Road Central College":9,"Chilwell Road":10,"Beeston Centre":12,"Middle Street":14,
+    "University Boulevard":16,"University of Nottingham":20,"QMC":22,"Gregory Street":24,"NG2":26,
+    "Meadows Way West":28,"Station":31,"Lace Market":33,"Old Market Square":34,"Royal Centre":35,
+    "Nottingham Trent University":37,"High School":40,"The Forest":42,"Noel Street":43,"Beaconsfield Street":44,
+    "Shipstone Street":46
+}
+TimeEarly= [360,375]
+TimeLate = [1460,1476,1490,1505]
+TimeBracket=[361,421,615,908,1128,1265,1445]
+
+StopSeed2 = {
+    "Hucknall":0,"Butlers Hill":2,"Moor Bridge":5,"Bulwell Forest":7,"Bulwell":8,
+    "Highbury Vale North East":10,"David Lane":12,"Basford":13,"Wilkinson St":16,"Radford Road":17,
+    "Hyson Green Market":19,"The Forest":21,"High School":23,"Nottingham Trent University":25,
+    "Royal Centre":27,"Old Market Square":28,"Lace Market":30,"Station":32,"Meadows Way West":34,
+    "NG2":36,"Gregory Street":38,"QMC":40,"University of Nottingham":42,"University Boulevard":46,
+    "Middle Street":48,"Beeston Centre":50,"Chilwell Road":52,"High Road Central College":53,
+    "Cator Lane":55,"Bramcote Lane":57,"Eskdale Drive":59,"Inham Road":60,"Toton":63
+}
+
+StopSeedEarly2 = {
+    "The Forest":0,"High School":2,"Nottingham Trent Uni":4,
+    "Royal Centre":6,"Old Market Square":7,"Lace Market":8,"Station":11,"Meadows Way West":13,
+    "NG2":15,"Gregory Street":17,"QMC":19,"University of Nottingham":22,"University Boulevard":24,
+    "Middle Street":27,"Beeston Centre":29,"Chilwell Road":31,"High Road Central College":32,
+    "Cator Lane":34,"Bramcote Lane":36,"Eskdale Drive":38,"Inham Road":40,"Toton":42
+}
+
+StopSeedLate2 = {
+    "Hucknall":0,"Butlers Hill":2,"Moor Bridge":5,"Bulwell Forest":7,"Bulwell":8,
+    "Highbury Vale North East":10,"David Lane":12,"Basford":13,"Wilkinson St":16,"Radford Road":17,
+    "Hyson Green Market":19,"The Forest":21,"High School":23,"Notingham Trent Uni":25,
+    "Royal Centre":27,"Old Market Sq":28,"Lace Market":30,"Station":32
+}
+
+TimeEarly2= [310,325,339,349]
+TimeLate2= [1440,1455]
+TimeBracket2=[364,420,599,900,1139,1260,1440]
+
+StopSeed3 = {
+    "Phoenix":0,"Cinderhill":1,"Highbury Vale South West":2,"David Lane":4,"Basford":5,
+    "Wilkinson Street":8,"Radford Road":10,"Hyson Green Market":12,"The Forest":14,"High School":16,
+    "Nottingham Trent University":18,"Royal Centre":20,"Old Market Square":21,"Lace Market":22,"Station":25,
+    "Queens Walk":27,"Meadows Embankment":28,"Wilford Village":29,"Wilford Lane":32,
+    "Compton Acres":34,"Ruddington Lane":35,"Southchurch Drive North":38,"Rivergreen":39,
+    "Clifton Centre":40,"Holy Trinity":43,"Summerwood Lane":44,"Clifton South":46
+}
+
+StopSeedEarly3 = {
+    "Wilkinson Street":8,"Radford Road":2,"Hyson Green Market":4,"The Forest":6,"High School":8,
+    "Nottingham Trent University":10,"Royal Centre":13,"Old Market Square":14,"Lace Market":14,
+    "Station":17,"Queens Walk":19,"Meadows Embankment":20,"Wilford Village":21,"Wilford Lane":24,
+    "Compton Acres":26,"Ruddington Lane":27,"Southchurch Drive North":30,"Rivergreen":31,
+    "Clifton Centre":32,"Holy Trinity":35,"Summerwood Lane":36,"Clifton South":38
+}
+
+StopSeedLate3 = {
+    "Phoenix":0,"Cinderhill":1,"Highbury Vale South West":2,"David Lane":4,"Basford":5,
+    "Wilkinson Street":8,"Radford Road":10,"Hyson Green Market":12,"The Forest":14,"High School":16,
+    "Nottingham Trent University":18,"Royal Centre":20,"Old Market Square":21,"Lace Market":22,"Station":25
+}
+TimeEarly3= [321,336,350,357]
+TimeLate3= [1440,1455]
+TimeBracket3=[364,423,610,902,1150,1262,1440]
+
+StopSeed4 = {
+    "Phoenix":46,"Cinderhill":44,"Highbury Vale South West":43,"David Lane":42,"Basford":41,
+    "Wilkinson Street":39,"Shipstone Street":38,"Beaconsfield Street":36,"Noel Street":34,"The Forest":32,
+    "High School":30,"Nottingham Trent University":27,"Royal Centre":25,"Old Market Square":24,"Lace Market":23,
+    "Station":21,"Queens Walk":19,"Meadows Embankment":18,"Wilford Village":16,"Wilford Lane":13,
+    "Compton Acres":11,"Ruddington Lane":10,"Southchurch Drive North":7,"Rivergreen":6,
+    "Clifton Centre":5,"Holy Trinity":3,"Summerwood Lane":1,"Clifton South":0
+}
+
+StopSeedEarly4 = {
+    "Phoenix":25,"Cinderhill":23,"Highbury Vale South West":22,"David Lane":21,"Basford":20,
+    "Wilkinson Street":18,"Shipstone Street":17,"Beaconsfield Street":15,"Noel Street":13,"The Forest":11,
+    "High School":9,"Nottingham Trent University":6,"Royal Centre":4,"Old Market Square":3,"Lace Market":2,
+    "Station":0
+}
+
+StopSeedLate4 = {
+    "The Forest":32,"High School":30,"Nottingham Trent University":27,"Royal Centre":25,"Old Market Square":24,
+    "Lace Market":23,"Station":21,"Queens Walk":19,"Meadows Embankment":18,"Wilford Village":16,
+    "Wilford Lane":13,"Compton Acres":11,"Ruddington Lane":10,"Southchurch Drive North":7,
+    "Rivergreen":6,"Clifton Centre":5,"Holy Trinity":3,"Summerwood Lane":1,"Clifton South":0
+}
+TimeEarly4= [368]
+TimeLate4= [1463,1473,1488]
+TimeBracket4=[362,420,601,901,1141,1266,1448]
+
+Frequency=[15,7,10,7,10,15]
+
+def fmt(t: int) -> str:
+    return f"{t//60:02d}:{t%60:02d}"
+
+def run_next_tram_mode():
+    st.subheader("Next Tram (GTFS-style)")
+    st.write("Monday to Friday service timetable")
+
+    time_input = st.time_input("Enter time")
+    ChosenTime = time_input.hour * 60 + time_input.minute
+
+    all_stops = sorted(set(
+        list(StopSeed.keys()) +
+        list(StopSeed2.keys()) +
+        list(StopSeed3.keys()) +
+        list(StopSeed4.keys())
+    ))
+
+    ChosenStop = st.selectbox("Choose your stop", all_stops)
+
+    if st.button("Show All Trams"):
+
+        # HUCKNALL DIRECTION
+        st.header("For Hucknall")
+
+        for i in range(len(TimeBracket) - 1):
+            if TimeBracket[i] <= ChosenTime < TimeBracket[i+1] and ChosenStop in StopSeed:
+                SeedTime=ChosenTime-StopSeed[ChosenStop]
+                WindowDelta=SeedTime-TimeBracket[i]
+                Remainder = WindowDelta%Frequency[i]
+                ttnt = abs(Remainder-Frequency[i])
+                NextTram = ChosenTime+ttnt
+                st.write("Next tram:", fmt(NextTram))
+                if NextTram<int(TimeBracket[i+1]):
+                    NextTram2 = (NextTram+Frequency[i])
+                    st.write("2nd:", fmt(NextTram2))
+                    if NextTram2<int(TimeBracket[i+1]):
+                        NextTram3 = (NextTram2+Frequency[i])
+                        st.write("3rd:", fmt(NextTram3))
+
+            if ChosenTime<int(TimeBracket[i]) and ChosenStop in StopSeedEarly:
+                for j in range(len(TimeEarly) - 1):
+                    if TimeEarly[j]<=ChosenTime<TimeEarly[j+1]:
+                        NextTram=int((TimeEarly[j+1])+StopSeedEarly[ChosenStop])
+                        st.write("Next early tram:", fmt(NextTram))
+                        break
+                    elif ChosenTime<int(TimeEarly[j]):
+                        NextTram=int(TimeEarly[j]+StopSeedEarly[ChosenStop])
+                        st.write("First tram:", fmt(NextTram))
+                        break
+                break
+
+            if ChosenTime>int(TimeBracket[-1]) and ChosenStop in StopSeedLate:
+                for k in range(len(TimeLate) - 1):
+                    if TimeLate[k]<=ChosenTime<TimeLate[k+1]:
+                        NextTram=int((TimeLate[k+1])+StopSeedLate[ChosenStop])
+                        st.write("Next late tram:", fmt(NextTram))
+                        break
+                    elif ChosenTime>int(TimeLate[-1]):
+                        NextTram=int((TimeLate[-1]+StopSeedLate[ChosenStop]))
+                        st.write("Final tram:", fmt(NextTram))
+                        break
+                break
+
+        # TOTON DIRECTION
+        st.header("For Toton Lane")
+
+        for l in range(len(TimeBracket2) - 1):
+            if TimeBracket2[l]<=ChosenTime<TimeBracket2[l+1] and ChosenStop in StopSeed2:
+                SeedTime=ChosenTime-StopSeed2[ChosenStop]
+                WindowDelta=SeedTime-TimeBracket2[l]
+                Remainder = WindowDelta%Frequency[l]
+                ttnt = abs(Remainder-Frequency[l])
+                NextTram = ChosenTime+ttnt
+                st.write("Next tram:", fmt(NextTram))
+                if NextTram<int(TimeBracket2[l+1]):
+                    NextTram2 = (NextTram+Frequency[l])
+                    st.write("2nd:", fmt(NextTram2))
+                    if NextTram2<int(TimeBracket2[l+1]):
+                        NextTram3 = (NextTram2+Frequency[l])
+                        st.write("3rd:", fmt(NextTram3))
+
+            if ChosenTime<int(TimeBracket2[l]) and ChosenStop in StopSeedEarly2:
+                for m in range(len(TimeEarly2) - 1):
+                    if TimeEarly2[m]<=ChosenTime<TimeEarly2[m+1]:
+                        NextTram=int((TimeEarly2[m+1])+StopSeedEarly2[ChosenStop])
+                        st.write("Next early tram:", fmt(NextTram))
+                        break
+                    elif ChosenTime<int(TimeEarly2[m]):
+                        NextTram=int(TimeEarly2[m]+StopSeedEarly2[ChosenStop])
+                        st.write("First tram:", fmt(NextTram))
+                        break
+                break
+
+            if ChosenTime>int(TimeBracket2[-1]) and ChosenStop in StopSeedLate2:
+                for n in range(len(TimeLate2) - 1):
+                    if TimeLate2[n]<=ChosenTime<TimeLate2[n+1]:
+                        NextTram=int((TimeLate2[n+1])+StopSeedLate2[ChosenStop])
+                        st.write("Next late tram:", fmt(NextTram))
+                        break
+                    elif ChosenTime>int(TimeLate2[-1]):
+                        NextTram=int((TimeLate2[-1]+StopSeedLate2[ChosenStop]))
+                        st.write("Final tram:", fmt(NextTram))
+                        break
+                break
+
+        # CLIFTON SOUTH DIRECTION
+        st.header("For Clifton South")
+
+        for O in range(len(TimeBracket3) - 1):
+            if TimeBracket3[O] <= ChosenTime < TimeBracket3[O+1] and ChosenStop in StopSeed3:
+                SeedTime = ChosenTime - StopSeed3[ChosenStop]
+                WindowDelta = SeedTime - TimeBracket3[O]
+                Remainder = WindowDelta % Frequency[O]
+                ttnt = abs(Remainder - Frequency[O])
+                NextTram = ChosenTime + ttnt
+                st.write("Next tram:", fmt(NextTram))
+                if NextTram < int(TimeBracket3[O+1]):
+                    NextTram2 = NextTram + Frequency[O]
+                    st.write("2nd:", fmt(NextTram2))
+                    if NextTram2 < int(TimeBracket3[O+1]):
+                        NextTram3 = NextTram2 + Frequency[O]
+                        st.write("3rd:", fmt(NextTram3))
+
+            if ChosenTime < int(TimeBracket3[O]) and ChosenStop in StopSeedEarly3:
+                for p in range(len(TimeEarly3) - 1):
+                    if TimeEarly3[p] <= ChosenTime < TimeEarly3[p+1]:
+                        NextTram = int(TimeEarly3[p+1] + StopSeedEarly3[ChosenStop])
+                        st.write("Next early tram:", fmt(NextTram))
+                        break
+                    elif ChosenTime < int(TimeEarly3[p]):
+                        NextTram = int(TimeEarly3[p] + StopSeedEarly3[ChosenStop])
+                        st.write("First tram:", fmt(NextTram))
+                        break
+                break
+
+            if ChosenTime > int(TimeBracket3[-1]) and ChosenStop in StopSeedLate3:
+                for q in range(len(TimeLate3) - 1):
+                    if TimeLate3[q] <= ChosenTime < TimeLate3[q+1]:
+                        NextTram = int(TimeLate3[q+1] + StopSeedLate3[ChosenStop])
+                        st.write("Next late tram:", fmt(NextTram))
+                        break
+                    elif ChosenTime > int(TimeLate3[-1]):
+                        NextTram = int(TimeLate3[-1] + StopSeedLate3[ChosenStop])
+                        st.write("Final tram:", fmt(NextTram))
+                        break
+                break
+
+        # PHOENIX PARK DIRECTION
+        st.header("For Phoenix Park")
+
+        for r in range(len(TimeBracket4) - 1):
+            if TimeBracket4[r] <= ChosenTime < TimeBracket4[r+1] and ChosenStop in StopSeed4:
+                SeedTime = ChosenTime - StopSeed4[ChosenStop]
+                WindowDelta = SeedTime - TimeBracket4[r]
+                Remainder = WindowDelta % Frequency[r]
+                ttnt = abs(Remainder - Frequency[r])
+                NextTram = ChosenTime + ttnt
+                st.write("Next tram:", fmt(NextTram))
+                if NextTram < int(TimeBracket4[r+1]):
+                    NextTram2 = NextTram + Frequency[r]
+                    st.write("2nd:", fmt(NextTram2))
+                    if NextTram2 < int(TimeBracket4[r+1]):
+                        NextTram3 = NextTram2 + Frequency[r]
+                        st.write("3rd:", fmt(NextTram3))
+
+            if ChosenTime < int(TimeBracket4[r]) and ChosenStop in StopSeedEarly4:
+                for s in range(len(TimeEarly4) - 1):
+                    if TimeEarly4[s] <= ChosenTime < TimeEarly4[s+1]:
+                        NextTram = int(TimeEarly4[s+1] + StopSeedEarly4[ChosenStop])
+                        st.write("Next early tram:", fmt(NextTram))
+                        break
+                    elif ChosenTime < int(TimeEarly4[s]):
+                        NextTram = int(TimeEarly4[s] + StopSeedEarly4[ChosenStop])
+                        st.write("First tram:", fmt(NextTram))
+                        break
+                break
+
+            if ChosenTime > int(TimeBracket4[-1]) and ChosenStop in StopSeedLate4:
+                for t in range(len(TimeLate4) - 1):
+                    if TimeLate4[t] <= ChosenTime < TimeLate4[t+1]:
+                        NextTram = int(TimeLate4[t+1] + StopSeedLate4[ChosenStop])
+                        st.write("Next late tram:", fmt(NextTram))
+                        break
+                    elif ChosenTime > int(TimeLate4[-1]):
+                        NextTram = int(TimeLate4[-1] + StopSeedLate4[ChosenStop])
+                        st.write("Final tram:", fmt(NextTram))
+                        break
+                break
+
+
+# =========================================================
+# 3. TOP-LEVEL MODE SELECTOR
+# =========================================================
+
+st.title("🚋 Nottingham Tram Tools")
+
+mode = st.radio(
+    "Select mode:",
+    ["Full Timetables", "Next Tram (GTFS-style)"]
 )
-# ============================================================
-# MODE: MINI‑MAP
-# ============================================================
-elif mode == "Mini‑Map":
 
-    import base64
+if mode == "Full Timetables":
+    run_timetable_mode()
+else:
+    run_next_tram_mode()
 
-    mini_map_network = {
-        "Clifton": NETWORK["CliftonPhoenix"],
-        "Toton": NETWORK["TotonHucknall"]
-    }
-
-    line = st.selectbox("Choose your line", list(NETWORK.keys()))
-    station = st.selectbox("Choose your station", list(NETWORK[line].keys()))
-
-    # Sort stops by distance (descending)
-    stops_sorted = sorted(NETWORK[line].items(), key=lambda x: x[1], reverse=True)
-    names = [s[0] for s in stops_sorted]
-
-    idx = names.index(station)
-
-    prev2 = names[idx - 2] if idx >= 2 else None
-    prev1 = names[idx - 1] if idx >= 1 else None
-    next1 = names[idx + 1] if idx + 1 < len(names) else None
-    next2 = names[idx + 2] if idx + 2 < len(names) else None
-
-    svg = """
-    <svg xmlns='http://www.w3.org/2000/svg' width='1000' height='1200'>
-      <rect width='1900' height='300' fill='white' stroke='lightgrey'/>
-      <line x1='100' y1='100' x2='900' y2='100' stroke='green' stroke-width='25'/>
-    """
-
-    positions = {
-        "prev2": 100,
-        "prev1": 300,
-        "here": 500,
-        "next1": 700,
-        "next2": 900
-    }
-
-    def draw_stop(name, x, highlight=False):
-        if not name:
-            return ""
-        fill = "Purple" if highlight else "Green"
-        stroke = "Green"
-        return f"""
-            <circle cx='{x}' cy='100' r='44' fill='{fill}' stroke='{stroke}' stroke-width='14'/>
-            <text x='{x}' y='200' font-size='25' text-anchor='middle'>{name}</text>
-        """
-
-    svg += draw_stop(prev2, positions["prev2"])
-    svg += draw_stop(prev1, positions["prev1"])
-    svg += draw_stop(station, positions["here"], highlight=True)
-    svg += draw_stop(next1, positions["next1"])
-    svg += draw_stop(next2, positions["next2"])
-
-    svg += "</svg>"
-
-    svg_bytes = svg.encode("utf-8")
-    b64 = base64.b64encode(svg_bytes).decode("utf-8")
-    img_tag = f"<img src='data:image/svg+xml;base64,{b64}'/>"
-
-    st.markdown(img_tag, unsafe_allow_html=True)
