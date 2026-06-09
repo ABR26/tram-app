@@ -1,4 +1,4 @@
-#VERSION 2.0# 23-04-26#
+#VERSION 2.2# 09-06-26#
 import streamlit as st
 import pandas as pd
 
