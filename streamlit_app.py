@@ -9,7 +9,7 @@ import pandas as pd
 # Hucknall → Toton
 StopRefToton = {
     "Hucknall":0,"Butlers Hill":2,"Moor Bridge":5,"Bulwell Forest":7,"Bulwell":8,
-    "Highbury Vale North East":10,"David Lane":12,"Basford":13,"Wilkinson Street":16,"Radford Road":17,
+    "Highbury Vale North East":10,"David Lane":12,"Basford":13,"Wilkinson Street":15,"Radford Road":17,
     "Hyson Green Market":19,"The Forest":21,"High School":23,"Nottingham Trent University":25,
     "Royal Centre":27,"Old Market Square":28,"Lace Market":30,"Station":32,"Meadows Way West":34,
     "NG2":36,"Gregory Street":38,"QMC":40,"University of Nottingham":42,"University Boulevard":46,
@@ -53,7 +53,7 @@ def timetable_hucknall_to_toton(stop):
 
     LateStops = {
         "Hucknall":0,"Butlers Hill":2,"Moor Bridge":5,"Bulwell Forest":7,"Bulwell":8,
-        "Highbury Vale North East":10,"David Lane":12,"Basford":13,"Wilkinson Street":16,"Radford Road":17,
+        "Highbury Vale North East":10,"David Lane":12,"Basford":13,"Wilkinson Street":15,"Radford Road":17,
         "Hyson Green Market":19,"The Forest":21,"High School":23,"Nottingham Trent University":25,
         "Royal Centre":27,"Old Market Square":28,"Lace Market":30,"Station":32
     }
@@ -170,9 +170,9 @@ def timetable_toton_to_hucknall(stop):
     SeedListHour = [t//60 for t in SeedList2]
     SeedListMin = [t%60 for t in SeedList2]
 
-    if SeedListHour:
-        SeedListHour.pop(-1)
-        SeedListMin.pop(-1)
+    #if SeedListHour:
+    #    SeedListHour.pop(-1)
+    #    SeedListMin.pop(-1)
 
     return list(zip(SeedListHour, SeedListMin))
 
