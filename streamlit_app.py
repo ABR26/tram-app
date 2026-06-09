@@ -9,7 +9,7 @@ import pandas as pd
 # Hucknall → Toton
 StopRefToton = {
     "Hucknall":0,"Butlers Hill":2,"Moor Bridge":5,"Bulwell Forest":7,"Bulwell":8,
-    "Highbury Vale North East":10,"David Lane":12,"Basford":13,"Wilkinson St":16,"Radford Road":17,
+    "Highbury Vale North East":10,"David Lane":12,"Basford":13,"Wilkinson Street":16,"Radford Road":17,
     "Hyson Green Market":19,"The Forest":21,"High School":23,"Nottingham Trent University":25,
     "Royal Centre":27,"Old Market Square":28,"Lace Market":30,"Station":32,"Meadows Way West":34,
     "NG2":36,"Gregory Street":38,"QMC":40,"University of Nottingham":42,"University Boulevard":46,
@@ -20,7 +20,7 @@ StopRefToton = {
 # Toton → Hucknall
 StopRefHucknall = {
     "Hucknall":63,"Butlers Hill":61,"Moor Bridge":58,"Bulwell Forest":57,"Bulwell":55,
-    "Highbury Vale North East":53,"David Lane":51,"Basford":50,"Wilkinson St":47,"Shipstone Street":46,"Beaconsfield Street":44,
+    "Highbury Vale North East":53,"David Lane":51,"Basford":50,"Wilkinson Street":47,"Shipstone Street":46,"Beaconsfield Street":44,
     "Noel Street":43,"The Forest":42,"High School":40,"Nottingham Trent University":37,
     "Royal Centre":35,"Old Market Square":34,"Lace Market":33,"Station":31,"Meadows Way West":28,
     "NG2":26,"Gregory Street":24,"QMC":22,"University of Nottingham":19,"University Boulevard":16,
@@ -53,7 +53,7 @@ def timetable_hucknall_to_toton(stop):
 
     LateStops = {
         "Hucknall":0,"Butlers Hill":2,"Moor Bridge":5,"Bulwell Forest":7,"Bulwell":8,
-        "Highbury Vale North East":10,"David Lane":12,"Basford":13,"Wilkinson St":16,"Radford Road":17,
+        "Highbury Vale North East":10,"David Lane":12,"Basford":13,"Wilkinson Street":16,"Radford Road":17,
         "Hyson Green Market":19,"The Forest":21,"High School":23,"Nottingham Trent University":25,
         "Royal Centre":27,"Old Market Square":28,"Lace Market":30,"Station":32
     }
@@ -117,13 +117,13 @@ def timetable_toton_to_hucknall(stop):
 
     EarlyStops = {
         "Hucknall":32,"Butlers Hill":30,"Moor Bridge":27,"Bulwell Forest":26,"Bulwell":24,
-        "Highbury Vale North East":22,"David Lane":20,"Basford":19,"Wilkinson St":16,"Shipstone Street":15,"Beaconsfield Street":13,
+        "Highbury Vale North East":22,"David Lane":20,"Basford":19,"Wilkinson Street":16,"Shipstone Street":15,"Beaconsfield Street":13,
         "Noel Street":12,"The Forest":11,"High School":9,"Nottingham Trent University":6,
         "Royal Centre":4,"Old Market Square":3,"Lace Market":2,"Station":0
     }
 
     LateStops = {
-        "Wilkinson St":47,"Shipstone Street":46,"Beaconsfield Street":44,
+        "Wilkinson Street":47,"Shipstone Street":46,"Beaconsfield Street":44,
         "Noel Street":43,"The Forest":42,"High School":40,"Nottingham Trent University":37,
         "Royal Centre":35,"Old Market Square":34,"Lace Market":33,"Station":31,"Meadows Way West":28,
         "NG2":26,"Gregory Street":24,"QMC":22,"University of Nottingham":19,"University Boulevard":16,
