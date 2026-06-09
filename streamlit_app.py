@@ -132,7 +132,7 @@ def timetable_toton_to_hucknall(stop):
     }
 
     LateStopTime = [1460,1476,1490,1505]
-    EarlyStopTime = [360,375]
+    EarlyStopTime = [360,375,392]
     Directory = [361,421,615,908,1155,1265,1445]
     Freq = [15,7,10,7,10,15]
 
@@ -194,7 +194,7 @@ def timetable_phoenix_to_clifton(stop):
         "Rivergreen":25,"Clifton Centre":26,"Holy Trinity":29,"Summerwood Lane":31,"Clifton South":32
     }
 
-    LateStopTime = [1455]
+    LateStopTime = [1440,1455]
     EarlyStopTime = [327,342,356,363]
     Directory = [364,420,559,900,1139,1260,1440]
     Freq = [15,7,10,7,10,15]
