@@ -132,8 +132,8 @@ def timetable_toton_to_hucknall(stop):
     }
 
     LateStopTime = [1460,1476,1490,1505]
-    EarlyStopTime = [300,315]
-    Directory = [364,420,559,900,1139,1260,1440]
+    EarlyStopTime = [360,375]
+    Directory = [361,421,615,908,1155,1265,1445]
     Freq = [15,7,10,7,10,15]
 
     SeedList = []
