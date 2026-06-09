@@ -66,7 +66,7 @@ def timetable_hucknall_to_toton(stop):
         "Cator Lane":34,"Bramcote Lane":36,"Eskdale Drive":38,"Inham Road":39,"Toton":42
     }
 
-    LateStopTime = [1455]
+    LateStopTime = [1440,1455]
     EarlyStopTime = [316,331,345,355,370]
     Directory = [364,420,559,900,1139,1260,1440]
     Freq = [15,7,10,7,10,15]
@@ -170,9 +170,9 @@ def timetable_toton_to_hucknall(stop):
     SeedListHour = [t//60 for t in SeedList2]
     SeedListMin = [t%60 for t in SeedList2]
 
-    #if SeedListHour:
-    #    SeedListHour.pop(-1)
-    #    SeedListMin.pop(-1)
+    if SeedListHour:
+        SeedListHour.pop(-1)
+        SeedListMin.pop(-1)
 
     return list(zip(SeedListHour, SeedListMin))
 
