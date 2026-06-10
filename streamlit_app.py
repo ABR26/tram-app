@@ -1,9 +1,9 @@
-#VERSION 2.2# 09-06-26#
+#VERSION 2.3# 10-06-26#
 import streamlit as st
 import pandas as pd
 
 # =========================================================
-# 1. TIMETABLE MODE – ORIGINAL 4 CODEBASES
+# 1. FULL TIMETABLE TOOL (HUCK–TOT, TOT–HUCK, PHOENIX–CLIFTON, CLIFTON–PHOENIX)
 # =========================================================
 
 # Hucknall → Toton
@@ -48,7 +48,7 @@ StopRefPhoenix = {
     "Clifton Centre":5,"Holy Trinity":3,"Summerwood Lane":1,"Clifton South":0
 }
 
-def timetable_hucknall_to_toton(stop):
+def timetable_hucknall_to_toton(stop, day_type):
     StopChoice = StopRefToton[stop]
 
     LateStops = {
@@ -66,53 +66,45 @@ def timetable_hucknall_to_toton(stop):
         "Cator Lane":34,"Bramcote Lane":36,"Eskdale Drive":38,"Inham Road":39,"Toton":42
     }
 
-    LateStopTime = [1440,1455]
-    EarlyStopTime = [316,331,345,355,370]
-    Directory = [364,420,559,900,1139,1260,1440]
-    Freq = [15,7,10,7,10,15]
+    if day_type == "Weekdays":
+        LateStopTime = [1440, 1455]
+        EarlyStopTime = [316, 331, 345, 355, 370]
+        Directory = [364, 420, 559, 900, 1139, 1260, 1440]
+        Freq = [15, 7, 10, 7, 10, 15]
+    elif day_type == "Saturday":
+        LateStopTime = [1440, 1455]
+        EarlyStopTime = [316, 331, 345, 355, 370, 385]
+        Directory = [364, 426, 606, 1139, 1260, 1440]
+        Freq = [15, 10, 7, 10, 15]
+    elif day_type == "Sunday":
+        LateStopTime = [1380, 1395]
+        EarlyStopTime = [316, 331, 345, 355, 370, 385]
+        Directory = [364, 420, 1140, 1380]
+        Freq = [15, 10, 15]
+    else:
+        return []
 
     SeedList = []
-    p,q,r,s,t,u = Directory[:6]
-    v = LateStopTime[0]
-    x = y = 0
 
-    for j in EarlyStopTime:
-        if stop in EarlyStops:
-            w = EarlyStopTime[y]
-            SeedList.append(w)
-            y += 1
+    if stop in EarlyStops:
+        SeedList.extend(EarlyStopTime)
 
-    while p < Directory[1]:
-        SeedList.append(p); p += Freq[0]
-    while q < Directory[2]:
-        SeedList.append(q); q += Freq[1]
-    while r < Directory[3]:
-        SeedList.append(r); r += Freq[2]
-    while s < Directory[4]:
-        SeedList.append(s); s += Freq[3]
-    while t < Directory[5]:
-        SeedList.append(t); t += Freq[4]
-    while u < Directory[6]:
-        SeedList.append(u); u += Freq[5]
+    for i in range(len(Freq)):
+        start = Directory[i]
+        end = Directory[i+1]
+        step = Freq[i]
+        t = start
+        while t < end:
+            SeedList.append(t)
+            t += step
 
-    for i in LateStopTime:
-        if stop in LateStops:
-            v = LateStopTime[x]
-            SeedList.append(v)
-            x += 1
+    if stop in LateStops:
+        SeedList.extend(LateStopTime)
 
-    SeedList2 = [t + StopChoice for t in SeedList]
-    SeedListHour = [t//60 for t in SeedList2]
-    SeedListMin = [t%60 for t in SeedList2]
+    Final = [t + StopChoice for t in SeedList]
+    return [(t // 60, t % 60) for t in Final]
 
-    if SeedListHour:
-        SeedListHour.pop(-1)
-        SeedListMin.pop(-1)
-
-    return list(zip(SeedListHour, SeedListMin))
-
-
-def timetable_toton_to_hucknall(stop):
+def timetable_toton_to_hucknall(stop, day_type):
     StopChoice = StopRefHucknall[stop]
 
     EarlyStops = {
@@ -131,53 +123,45 @@ def timetable_toton_to_hucknall(stop):
         "Cator Lane":7,"Bramcote Lane":6,"Eskdale Drive":4,"Inham Road":2,"Toton":0
     }
 
-    LateStopTime = [1460,1476,1490,1505]
-    EarlyStopTime = [360,375,392]
-    Directory = [361,421,615,908,1155,1265,1445]
-    Freq = [15,7,10,7,10,15]
+    if day_type == "Weekdays":
+        LateStopTime = [1460,1476,1490,1505]
+        EarlyStopTime = [360,375,392]
+        Directory = [361,421,615,908,1155,1265,1445]
+        Freq = [15,7,10,7,10,15]
+    elif day_type == "Saturday":
+        EarlyStopTime = [360,375,392]
+        LateStopTime = [1445,1460,1476,1490,1505]
+        Directory = [361,421,601,1155,1275,1445]
+        Freq = [15,10,7,10,15]
+    elif day_type == "Sunday":
+        LateStopTime = [1385,1400,1415,1430,1445]
+        EarlyStopTime = [360,375,392]
+        Directory = [361,425,1145,1375]
+        Freq = [15,10,15]
+    else:
+        return []
 
     SeedList = []
-    p,q,r,s,t,u = Directory[:6]
-    v = LateStopTime[0]
-    x = y = 0
 
-    for j in EarlyStopTime:
-        if stop in LateStops:
-            w = EarlyStopTime[y]
-            SeedList.append(w)
-            y += 1
+    if stop in EarlyStops:
+        SeedList.extend(EarlyStopTime)
 
-    while p < Directory[1]:
-        SeedList.append(p); p += Freq[0]
-    while q < Directory[2]:
-        SeedList.append(q); q += Freq[1]
-    while r < Directory[3]:
-        SeedList.append(r); r += Freq[2]
-    while s < Directory[4]:
-        SeedList.append(s); s += Freq[3]
-    while t < Directory[5]:
-        SeedList.append(t); t += Freq[4]
-    while u < Directory[6]:
-        SeedList.append(u); u += Freq[5]
+    for i in range(len(Freq)):
+        start = Directory[i]
+        end = Directory[i+1]
+        step = Freq[i]
+        t = start
+        while t < end:
+            SeedList.append(t)
+            t += step
 
-    for i in LateStopTime:
-        if stop in LateStops:
-            v = LateStopTime[x]
-            SeedList.append(v)
-            x += 1
+    if stop in LateStops:
+        SeedList.extend(LateStopTime)
 
-    SeedList2 = [t + StopChoice for t in SeedList]
-    SeedListHour = [t//60 for t in SeedList2]
-    SeedListMin = [t%60 for t in SeedList2]
+    Final = [t + StopChoice for t in SeedList]
+    return [(t // 60, t % 60) for t in Final]
 
-    if SeedListHour:
-        SeedListHour.pop(-1)
-        SeedListMin.pop(-1)
-
-    return list(zip(SeedListHour, SeedListMin))
-
-
-def timetable_phoenix_to_clifton(stop):
+def timetable_phoenix_to_clifton(stop, day_type):
     StopChoice = StopRefClifton[stop]
 
     LateStops = {
@@ -194,53 +178,45 @@ def timetable_phoenix_to_clifton(stop):
         "Rivergreen":25,"Clifton Centre":26,"Holy Trinity":29,"Summerwood Lane":31,"Clifton South":32
     }
 
-    LateStopTime = [1440,1455]
-    EarlyStopTime = [327,342,356,363]
-    Directory = [364,420,559,900,1139,1260,1440]
-    Freq = [15,7,10,7,10,15]
+    if day_type == "Weekdays":
+        LateStopTime = [1440,1455]
+        EarlyStopTime = [327,342,356,363]
+        Directory = [364,420,559,900,1139,1260,1440]
+        Freq = [15,7,10,7,10,15]
+    elif day_type == "Saturday":
+        EarlyStopTime = [327,342,356,363,378]
+        LateStopTime = [1440,1455]
+        Directory = [364,438,617,1150,1262,1440]
+        Freq = [15,10,7,10,15]
+    elif day_type == "Sunday":
+        LateStopTime = [1380, 1395]
+        EarlyStopTime = [327,342,356,363,378]
+        Directory = [364,422,1142,1380]
+        Freq = [15,10,15]
+    else:
+        return []
 
     SeedList = []
-    p,q,r,s,t,u = Directory[:6]
-    v = LateStopTime[0]
-    x = y = 0
 
-    for j in EarlyStopTime:
-        if stop in EarlyStops:
-            w = EarlyStopTime[y]
-            SeedList.append(w)
-            y += 1
+    if stop in EarlyStops:
+        SeedList.extend(EarlyStopTime)
 
-    while p < Directory[1]:
-        SeedList.append(p); p += Freq[0]
-    while q < Directory[2]:
-        SeedList.append(q); q += Freq[1]
-    while r < Directory[3]:
-        SeedList.append(r); r += Freq[2]
-    while s < Directory[4]:
-        SeedList.append(s); s += Freq[3]
-    while t < Directory[5]:
-        SeedList.append(t); t += Freq[4]
-    while u < Directory[6]:
-        SeedList.append(u); u += Freq[5]
+    for i in range(len(Freq)):
+        start = Directory[i]
+        end = Directory[i+1]
+        step = Freq[i]
+        t = start
+        while t < end:
+            SeedList.append(t)
+            t += step
 
-    for i in LateStopTime:
-        if stop in LateStops:
-            v = LateStopTime[x]
-            SeedList.append(v)
-            x += 1
+    if stop in LateStops:
+        SeedList.extend(LateStopTime)
 
-    SeedList2 = [t + StopChoice for t in SeedList]
-    SeedListHour = [t//60 for t in SeedList2]
-    SeedListMin = [t%60 for t in SeedList2]
+    Final = [t + StopChoice for t in SeedList]
+    return [(t // 60, t % 60) for t in Final]
 
-    if SeedListHour:
-        SeedListHour.pop(-1)
-        SeedListMin.pop(-1)
-
-    return list(zip(SeedListHour, SeedListMin))
-
-
-def timetable_clifton_to_phoenix(stop):
+def timetable_clifton_to_phoenix(stop, day_type):
     StopChoice = StopRefPhoenix[stop]
 
     LateStops = {
@@ -258,51 +234,43 @@ def timetable_clifton_to_phoenix(stop):
         "Lace Market":2,"Station":0
     }
 
-    LateStopTime = [1463,1473,1508]
-    EarlyStopTime = [368]
-    Directory = [364,420,559,900,1139,1260,1440]
-    Freq = [15,7,10,7,10,15]
+    if day_type == "Weekdays":
+        LateStopTime = [1463,1473,1508]
+        EarlyStopTime = [368]
+        Directory = [364,420,559,900,1139,1260,1440]
+        Freq = [15,7,10,7,10,15]
+    elif day_type == "Saturday":
+        EarlyStopTime = [368,383]
+        LateStopTime = [1448,1463,1473,1488]
+        Directory = [362,425,606,1141,1266,1448]
+        Freq = [15,10,7,10,15]
+    elif day_type == "Sunday":
+        LateStopTime = [1388,1403,1413,1428]
+        EarlyStopTime = [368,383]
+        Directory = [362,421,1131,1388]
+        Freq = [15,10,15]
+    else:
+        return []
 
     SeedList = []
-    p,q,r,s,t,u = Directory[:6]
-    v = LateStopTime[0]
-    x = y = 0
 
-    for j in EarlyStopTime:
-        if stop in EarlyStops:
-            w = EarlyStopTime[y]
-            SeedList.append(w)
-            y += 1
+    if stop in EarlyStops:
+        SeedList.extend(EarlyStopTime)
 
-    while p < Directory[1]:
-        SeedList.append(p); p += Freq[0]
-    while q < Directory[2]:
-        SeedList.append(q); q += Freq[1]
-    while r < Directory[3]:
-        SeedList.append(r); r += Freq[2]
-    while s < Directory[4]:
-        SeedList.append(s); s += Freq[3]
-    while t < Directory[5]:
-        SeedList.append(t); t += Freq[4]
-    while u < Directory[6]:
-        SeedList.append(u); u += Freq[5]
+    for i in range(len(Freq)):
+        start = Directory[i]
+        end = Directory[i+1]
+        step = Freq[i]
+        t = start
+        while t < end:
+            SeedList.append(t)
+            t += step
 
-    for i in LateStopTime:
-        if stop in LateStops:
-            v = LateStopTime[x]
-            SeedList.append(v)
-            x += 1
+    if stop in LateStops:
+        SeedList.extend(LateStopTime)
 
-    SeedList2 = [t + StopChoice for t in SeedList]
-    SeedListHour = [t//60 for t in SeedList2]
-    SeedListMin = [t%60 for t in SeedList2]
-
-    if SeedListHour:
-        SeedListHour.pop(-1)
-        SeedListMin.pop(-1)
-
-    return list(zip(SeedListHour, SeedListMin))
-
+    Final = [t + StopChoice for t in SeedList]
+    return [(t // 60, t % 60) for t in Final]
 
 def run_timetable_mode():
     st.subheader("Full Timetables")
@@ -317,37 +285,45 @@ def run_timetable_mode():
         ]
     )
 
+    day_type = st.radio(
+        "Select day type:",
+        ["Weekdays", "Saturday", "Sunday"],
+        horizontal=True
+    )
+
+    stop = None
+    timetable = []
+
     if route == "Hucknall → Toton Lane":
         stop = st.selectbox("Choose your stop:", list(StopRefToton.keys()))
     elif route == "Toton Lane → Hucknall":
         stop = st.selectbox("Choose your stop:", list(StopRefHucknall.keys()))
     elif route == "Phoenix Park → Clifton South":
         stop = st.selectbox("Choose your stop:", list(StopRefClifton.keys()))
-    else:
+    elif route == "Clifton South → Phoenix Park":
         stop = st.selectbox("Choose your stop:", list(StopRefPhoenix.keys()))
 
-    if st.button("Generate Timetable"):
+    if st.button("Generate Timetable") and stop is not None:
         if route == "Hucknall → Toton Lane":
-            timetable = timetable_hucknall_to_toton(stop)
+            timetable = timetable_hucknall_to_toton(stop, day_type)
         elif route == "Toton Lane → Hucknall":
-            timetable = timetable_toton_to_hucknall(stop)
+            timetable = timetable_toton_to_hucknall(stop, day_type)
         elif route == "Phoenix Park → Clifton South":
-            timetable = timetable_phoenix_to_clifton(stop)
-        else:
-            timetable = timetable_clifton_to_phoenix(stop)
+            timetable = timetable_phoenix_to_clifton(stop, day_type)
+        elif route == "Clifton South → Phoenix Park":
+            timetable = timetable_clifton_to_phoenix(stop, day_type)
 
         formatted = [f"{h:02d}:{m:02d}" for h, m in timetable]
         df = pd.DataFrame({"Arrival Time": formatted})
 
-        st.success(f"Timetable for **{stop}** on **{route}**")
+        st.success(f"Timetable for **{stop}** on **{route}** ({day_type})")
         st.table(df)
 
-
 # =========================================================
-# 2. NEXT TRAM (GTFS-STYLE) MODE – YOUR SECOND TOOL
+# 2. NEXT TRAM (GTFS-STYLE) MODE – SECOND TOOL
 # =========================================================
 
-# Dictionaries and parameters from Part 1
+# Base GTFS stop seeds (directional)
 StopSeed = {
     "Toton":0,"Inham Road":2,"Eskdale Drive":4,"Bramcote Lane":6,"Cator lane":7,
     "High Road Central College":9,"Chilwell Road":10,"Beeston Centre":12,"Middle Street":14,
@@ -373,9 +349,6 @@ StopSeedLate = {
     "Nottingham Trent University":37,"High School":40,"The Forest":42,"Noel Street":43,"Beaconsfield Street":44,
     "Shipstone Street":46
 }
-TimeEarly= [360,375]
-TimeLate = [1460,1476,1490,1505]
-TimeBracket=[361,421,615,908,1128,1265,1445]
 
 StopSeed2 = {
     "Hucknall":0,"Butlers Hill":2,"Moor Bridge":5,"Bulwell Forest":7,"Bulwell":8,
@@ -402,10 +375,6 @@ StopSeedLate2 = {
     "Royal Centre":27,"Old Market Sq":28,"Lace Market":30,"Station":32
 }
 
-TimeEarly2= [310,325,339,349]
-TimeLate2= [1440,1455]
-TimeBracket2=[364,420,599,900,1139,1260,1440]
-
 StopSeed3 = {
     "Phoenix":0,"Cinderhill":1,"Highbury Vale South West":2,"David Lane":4,"Basford":5,
     "Wilkinson Street":8,"Radford Road":10,"Hyson Green Market":12,"The Forest":14,"High School":16,
@@ -428,9 +397,6 @@ StopSeedLate3 = {
     "Wilkinson Street":8,"Radford Road":10,"Hyson Green Market":12,"The Forest":14,"High School":16,
     "Nottingham Trent University":18,"Royal Centre":20,"Old Market Square":21,"Lace Market":22,"Station":25
 }
-TimeEarly3= [321,336,350,357]
-TimeLate3= [1440,1455]
-TimeBracket3=[364,423,610,902,1150,1262,1440]
 
 StopSeed4 = {
     "Phoenix":46,"Cinderhill":44,"Highbury Vale South West":43,"David Lane":42,"Basford":41,
@@ -454,18 +420,18 @@ StopSeedLate4 = {
     "Wilford Lane":13,"Compton Acres":11,"Ruddington Lane":10,"Southchurch Drive North":7,
     "Rivergreen":6,"Clifton Centre":5,"Holy Trinity":3,"Summerwood Lane":1,"Clifton South":0
 }
-TimeEarly4= [368]
-TimeLate4= [1463,1473,1488]
-TimeBracket4=[362,420,601,901,1141,1266,1448]
-
-Frequency=[15,7,10,7,10,15]
 
 def fmt(t: int) -> str:
     return f"{t//60:02d}:{t%60:02d}"
 
 def run_next_tram_mode():
     st.subheader("Next Tram (GTFS-style)")
-    st.write("Monday to Friday service timetable")
+
+    day_type = st.radio(
+        "Select day type:",
+        ["Weekdays", "Saturday", "Sunday"],
+        horizontal=True
+    )
 
     time_input = st.time_input("Enter time")
     ChosenTime = time_input.hour * 60 + time_input.minute
@@ -479,108 +445,172 @@ def run_next_tram_mode():
 
     ChosenStop = st.selectbox("Choose your stop", all_stops)
 
+    # Map full-timetable configs onto GTFS engine per corridor/day type
+    if day_type == "Weekdays":
+        TimeEarly = [360,375,392]                 # Toton → Hucknall
+        TimeLate = [1460,1476,1490,1505]
+        TimeBracket = [361,421,615,908,1155,1265,1445]
+        Freq = [15,7,10,7,10,15]
+
+        TimeEarly2 = [316,331,345,355,370]        # Hucknall → Toton
+        TimeLate2 = [1440,1455]
+        TimeBracket2 = [364,420,559,900,1139,1260,1440]
+        Freq2 = [15,7,10,7,10,15]
+
+        TimeEarly3 = [327,342,356,363]            # Phoenix → Clifton
+        TimeLate3 = [1440,1455]
+        TimeBracket3 = [364,420,559,900,1139,1260,1440]
+        Freq3 = [15,7,10,7,10,15]
+
+        TimeEarly4 = [368]                        # Clifton → Phoenix
+        TimeLate4 = [1463,1473,1508]
+        TimeBracket4 = [364,420,559,900,1139,1260,1440]
+        Freq4 = [15,7,10,7,10,15]
+
+    elif day_type == "Saturday":
+        TimeEarly = [360,375,392]                 # Toton → Hucknall
+        TimeLate = [1445,1460,1476,1490,1505]
+        TimeBracket = [361,421,601,1155,1275,1445]
+        Freq = [15,10,7,10,15]
+
+        TimeEarly2 = [316,331,345,355,370,385]    # Hucknall → Toton
+        TimeLate2 = [1440,1455]
+        TimeBracket2 = [364,426,606,1139,1260,1440]
+        Freq2 = [15,10,7,10,15]
+
+        TimeEarly3 = [327,342,356,363,378]        # Phoenix → Clifton
+        TimeLate3 = [1440,1455]
+        TimeBracket3 = [364,438,617,1150,1262,1440]
+        Freq3 = [15,10,7,10,15]
+
+        TimeEarly4 = [368,383]                    # Clifton → Phoenix
+        TimeLate4 = [1448,1463,1473,1488]
+        TimeBracket4 = [362,425,606,1141,1266,1448]
+        Freq4 = [15,10,7,10,15]
+
+    else:  # Sunday
+        TimeEarly = [360,375,392]                 # Toton → Hucknall
+        TimeLate = [1385,1400,1415,1430,1445]
+        TimeBracket = [361,425,1145,1375]
+        Freq = [15,10,15]
+
+        TimeEarly2 = [316,331,345,355,370,385]    # Hucknall → Toton
+        TimeLate2 = [1380,1395]
+        TimeBracket2 = [364,420,1140,1380]
+        Freq2 = [15,10,15]
+
+        TimeEarly3 = [327,342,356,363,378]        # Phoenix → Clifton
+        TimeLate3 = [1380,1395]
+        TimeBracket3 = [364,422,1142,1380]
+        Freq3 = [15,10,15]
+
+        TimeEarly4 = [368,383]                    # Clifton → Phoenix
+        TimeLate4 = [1388,1403,1413,1428]
+        TimeBracket4 = [362,421,1131,1388]
+        Freq4 = [15,10,15]
+
     if st.button("Show All Trams"):
 
-        # HUCKNALL DIRECTION
+        # HUCKNALL DIRECTION (Toton → Hucknall)
         st.header("For Hucknall")
 
         for i in range(len(TimeBracket) - 1):
             if TimeBracket[i] <= ChosenTime < TimeBracket[i+1] and ChosenStop in StopSeed:
-                SeedTime=ChosenTime-StopSeed[ChosenStop]
-                WindowDelta=SeedTime-TimeBracket[i]
-                Remainder = WindowDelta%Frequency[i]
-                ttnt = abs(Remainder-Frequency[i])
-                NextTram = ChosenTime+ttnt
+                SeedTime = ChosenTime - StopSeed[ChosenStop]
+                WindowDelta = SeedTime - TimeBracket[i]
+                Remainder = WindowDelta % Freq[i]
+                ttnt = abs(Remainder - Freq[i])
+                NextTram = ChosenTime + ttnt
                 st.write("Next tram:", fmt(NextTram))
-                if NextTram<int(TimeBracket[i+1]):
-                    NextTram2 = (NextTram+Frequency[i])
+                if NextTram < int(TimeBracket[i+1]):
+                    NextTram2 = NextTram + Freq[i]
                     st.write("2nd:", fmt(NextTram2))
-                    if NextTram2<int(TimeBracket[i+1]):
-                        NextTram3 = (NextTram2+Frequency[i])
+                    if NextTram2 < int(TimeBracket[i+1]):
+                        NextTram3 = NextTram2 + Freq[i]
                         st.write("3rd:", fmt(NextTram3))
 
-            if ChosenTime<int(TimeBracket[i]) and ChosenStop in StopSeedEarly:
+            if ChosenTime < int(TimeBracket[i]) and ChosenStop in StopSeedEarly:
                 for j in range(len(TimeEarly) - 1):
-                    if TimeEarly[j]<=ChosenTime<TimeEarly[j+1]:
-                        NextTram=int((TimeEarly[j+1])+StopSeedEarly[ChosenStop])
+                    if TimeEarly[j] <= ChosenTime < TimeEarly[j+1]:
+                        NextTram = int(TimeEarly[j+1] + StopSeedEarly[ChosenStop])
                         st.write("Next early tram:", fmt(NextTram))
                         break
-                    elif ChosenTime<int(TimeEarly[j]):
-                        NextTram=int(TimeEarly[j]+StopSeedEarly[ChosenStop])
+                    elif ChosenTime < int(TimeEarly[j]):
+                        NextTram = int(TimeEarly[j] + StopSeedEarly[ChosenStop])
                         st.write("First tram:", fmt(NextTram))
                         break
                 break
 
-            if ChosenTime>int(TimeBracket[-1]) and ChosenStop in StopSeedLate:
+            if ChosenTime > int(TimeBracket[-1]) and ChosenStop in StopSeedLate:
                 for k in range(len(TimeLate) - 1):
-                    if TimeLate[k]<=ChosenTime<TimeLate[k+1]:
-                        NextTram=int((TimeLate[k+1])+StopSeedLate[ChosenStop])
+                    if TimeLate[k] <= ChosenTime < TimeLate[k+1]:
+                        NextTram = int(TimeLate[k+1] + StopSeedLate[ChosenStop])
                         st.write("Next late tram:", fmt(NextTram))
                         break
-                    elif ChosenTime>int(TimeLate[-1]):
-                        NextTram=int((TimeLate[-1]+StopSeedLate[ChosenStop]))
+                    elif ChosenTime > int(TimeLate[-1]):
+                        NextTram = int(TimeLate[-1] + StopSeedLate[ChosenStop])
                         st.write("Final tram:", fmt(NextTram))
                         break
                 break
 
-        # TOTON DIRECTION
+        # TOTON DIRECTION (Hucknall → Toton)
         st.header("For Toton Lane")
 
         for l in range(len(TimeBracket2) - 1):
-            if TimeBracket2[l]<=ChosenTime<TimeBracket2[l+1] and ChosenStop in StopSeed2:
-                SeedTime=ChosenTime-StopSeed2[ChosenStop]
-                WindowDelta=SeedTime-TimeBracket2[l]
-                Remainder = WindowDelta%Frequency[l]
-                ttnt = abs(Remainder-Frequency[l])
-                NextTram = ChosenTime+ttnt
+            if TimeBracket2[l] <= ChosenTime < TimeBracket2[l+1] and ChosenStop in StopSeed2:
+                SeedTime = ChosenTime - StopSeed2[ChosenStop]
+                WindowDelta = SeedTime - TimeBracket2[l]
+                Remainder = WindowDelta % Freq2[l]
+                ttnt = abs(Remainder - Freq2[l])
+                NextTram = ChosenTime + ttnt
                 st.write("Next tram:", fmt(NextTram))
-                if NextTram<int(TimeBracket2[l+1]):
-                    NextTram2 = (NextTram+Frequency[l])
+                if NextTram < int(TimeBracket2[l+1]):
+                    NextTram2 = NextTram + Freq2[l]
                     st.write("2nd:", fmt(NextTram2))
-                    if NextTram2<int(TimeBracket2[l+1]):
-                        NextTram3 = (NextTram2+Frequency[l])
+                    if NextTram2 < int(TimeBracket2[l+1]):
+                        NextTram3 = NextTram2 + Freq2[l]
                         st.write("3rd:", fmt(NextTram3))
 
-            if ChosenTime<int(TimeBracket2[l]) and ChosenStop in StopSeedEarly2:
+            if ChosenTime < int(TimeBracket2[l]) and ChosenStop in StopSeedEarly2:
                 for m in range(len(TimeEarly2) - 1):
-                    if TimeEarly2[m]<=ChosenTime<TimeEarly2[m+1]:
-                        NextTram=int((TimeEarly2[m+1])+StopSeedEarly2[ChosenStop])
+                    if TimeEarly2[m] <= ChosenTime < TimeEarly2[m+1]:
+                        NextTram = int(TimeEarly2[m+1] + StopSeedEarly2[ChosenStop])
                         st.write("Next early tram:", fmt(NextTram))
                         break
-                    elif ChosenTime<int(TimeEarly2[m]):
-                        NextTram=int(TimeEarly2[m]+StopSeedEarly2[ChosenStop])
+                    elif ChosenTime < int(TimeEarly2[m]):
+                        NextTram = int(TimeEarly2[m] + StopSeedEarly2[ChosenStop])
                         st.write("First tram:", fmt(NextTram))
                         break
                 break
 
-            if ChosenTime>int(TimeBracket2[-1]) and ChosenStop in StopSeedLate2:
+            if ChosenTime > int(TimeBracket2[-1]) and ChosenStop in StopSeedLate2:
                 for n in range(len(TimeLate2) - 1):
-                    if TimeLate2[n]<=ChosenTime<TimeLate2[n+1]:
-                        NextTram=int((TimeLate2[n+1])+StopSeedLate2[ChosenStop])
+                    if TimeLate2[n] <= ChosenTime < TimeLate2[n+1]:
+                        NextTram = int(TimeLate2[n+1] + StopSeedLate2[ChosenStop])
                         st.write("Next late tram:", fmt(NextTram))
                         break
-                    elif ChosenTime>int(TimeLate2[-1]):
-                        NextTram=int((TimeLate2[-1]+StopSeedLate2[ChosenStop]))
+                    elif ChosenTime > int(TimeLate2[-1]):
+                        NextTram = int(TimeLate2[-1] + StopSeedLate2[ChosenStop])
                         st.write("Final tram:", fmt(NextTram))
                         break
                 break
 
-        # CLIFTON SOUTH DIRECTION
+        # CLIFTON SOUTH DIRECTION (Phoenix → Clifton)
         st.header("For Clifton South")
 
         for O in range(len(TimeBracket3) - 1):
             if TimeBracket3[O] <= ChosenTime < TimeBracket3[O+1] and ChosenStop in StopSeed3:
                 SeedTime = ChosenTime - StopSeed3[ChosenStop]
                 WindowDelta = SeedTime - TimeBracket3[O]
-                Remainder = WindowDelta % Frequency[O]
-                ttnt = abs(Remainder - Frequency[O])
+                Remainder = WindowDelta % Freq3[O]
+                ttnt = abs(Remainder - Freq3[O])
                 NextTram = ChosenTime + ttnt
                 st.write("Next tram:", fmt(NextTram))
                 if NextTram < int(TimeBracket3[O+1]):
-                    NextTram2 = NextTram + Frequency[O]
+                    NextTram2 = NextTram + Freq3[O]
                     st.write("2nd:", fmt(NextTram2))
                     if NextTram2 < int(TimeBracket3[O+1]):
-                        NextTram3 = NextTram2 + Frequency[O]
+                        NextTram3 = NextTram2 + Freq3[O]
                         st.write("3rd:", fmt(NextTram3))
 
             if ChosenTime < int(TimeBracket3[O]) and ChosenStop in StopSeedEarly3:
@@ -607,22 +637,22 @@ def run_next_tram_mode():
                         break
                 break
 
-        # PHOENIX PARK DIRECTION
+        # PHOENIX PARK DIRECTION (Clifton → Phoenix)
         st.header("For Phoenix Park")
 
         for r in range(len(TimeBracket4) - 1):
             if TimeBracket4[r] <= ChosenTime < TimeBracket4[r+1] and ChosenStop in StopSeed4:
                 SeedTime = ChosenTime - StopSeed4[ChosenStop]
                 WindowDelta = SeedTime - TimeBracket4[r]
-                Remainder = WindowDelta % Frequency[r]
-                ttnt = abs(Remainder - Frequency[r])
+                Remainder = WindowDelta % Freq4[r]
+                ttnt = abs(Remainder - Freq4[r])
                 NextTram = ChosenTime + ttnt
                 st.write("Next tram:", fmt(NextTram))
                 if NextTram < int(TimeBracket4[r+1]):
-                    NextTram2 = NextTram + Frequency[r]
+                    NextTram2 = NextTram + Freq4[r]
                     st.write("2nd:", fmt(NextTram2))
                     if NextTram2 < int(TimeBracket4[r+1]):
-                        NextTram3 = NextTram2 + Frequency[r]
+                        NextTram3 = NextTram2 + Freq4[r]
                         st.write("3rd:", fmt(NextTram3))
 
             if ChosenTime < int(TimeBracket4[r]) and ChosenStop in StopSeedEarly4:
@@ -649,7 +679,6 @@ def run_next_tram_mode():
                         break
                 break
 
-
 # =========================================================
 # 3. TOP-LEVEL MODE SELECTOR
 # =========================================================
@@ -665,4 +694,6 @@ if mode == "Full Timetables":
     run_timetable_mode()
 else:
     run_next_tram_mode()
+
+           
 
