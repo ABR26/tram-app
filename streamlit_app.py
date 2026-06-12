@@ -1,7 +1,8 @@
 #VERSION 2.3# 10-06-26#
 import streamlit as st
 import pandas as pd
-
+##Variable fix to remove "throwing the last time" bug 12/6/26##
+min_gap=7
 # =========================================================
 # 1. FULL TIMETABLE TOOL (HUCK–TOT, TOT–HUCK, PHOENIX–CLIFTON, CLIFTON–PHOENIX)
 # =========================================================
@@ -94,7 +95,7 @@ def timetable_hucknall_to_toton(stop, day_type):
         end = Directory[i+1]
         step = Freq[i]
         t = start
-        while t < end:
+        while t < end-min_gap:
             SeedList.append(t)
             t += step
 
@@ -151,7 +152,7 @@ def timetable_toton_to_hucknall(stop, day_type):
         end = Directory[i+1]
         step = Freq[i]
         t = start
-        while t < end:
+        while t < end-min_gap:
             SeedList.append(t)
             t += step
 
@@ -206,7 +207,7 @@ def timetable_phoenix_to_clifton(stop, day_type):
         end = Directory[i+1]
         step = Freq[i]
         t = start
-        while t < end:
+        while t < end-min_gap:
             SeedList.append(t)
             t += step
 
@@ -262,7 +263,7 @@ def timetable_clifton_to_phoenix(stop, day_type):
         end = Directory[i+1]
         step = Freq[i]
         t = start
-        while t < end:
+        while t < end-min_gap:
             SeedList.append(t)
             t += step
 
@@ -454,17 +455,17 @@ def run_next_tram_mode():
 
         TimeEarly2 = [316,331,345,355,370]        # Hucknall → Toton
         TimeLate2 = [1440,1455]
-        TimeBracket2 = [364,420,559,900,1139,1260,1440]
+        TimeBracket2 = [364,420,599,900,1139,1260,1440]
         Freq2 = [15,7,10,7,10,15]
 
         TimeEarly3 = [327,342,356,363]            # Phoenix → Clifton
         TimeLate3 = [1440,1455]
-        TimeBracket3 = [364,420,559,900,1139,1260,1440]
+        TimeBracket3 = [364,420,610,900,1139,1260,1440]
         Freq3 = [15,7,10,7,10,15]
 
         TimeEarly4 = [368]                        # Clifton → Phoenix
         TimeLate4 = [1463,1473,1508]
-        TimeBracket4 = [364,420,559,900,1139,1260,1440]
+        TimeBracket4 = [364,420,601,900,1139,1260,1440]
         Freq4 = [15,7,10,7,10,15]
 
     elif day_type == "Saturday":
