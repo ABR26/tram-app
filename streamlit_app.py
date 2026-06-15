@@ -105,6 +105,10 @@ def timetable_hucknall_to_toton(stop, day_type):
             normal_list.append(t + normal_offset)
             t += step
 
+    # Add the final real boundary time (always valid)
+    final_real = Directory[-1] + normal_offset
+    normal_list.append(final_real)
+
     if stop in LateStops:
         late_offset = LateStops[stop]
         for t in LateStopTime:
@@ -166,6 +170,10 @@ def timetable_toton_to_hucknall(stop, day_type):
             normal_list.append(t + normal_offset)
             t += step
 
+    # Add the final real boundary time (always valid)
+    final_real = Directory[-1] + normal_offset
+    normal_list.append(final_real)
+
     if stop in LateStops:
         late_offset = LateStops[stop]
         for t in LateStopTime:
@@ -224,6 +232,10 @@ def timetable_phoenix_to_clifton(stop, day_type):
         while t < end - min_gap:
             normal_list.append(t + normal_offset)
             t += step
+
+    # Add the final real boundary time (always valid)
+    final_real = Directory[-1] + normal_offset
+    normal_list.append(final_real)
 
     if stop in LateStops:
         late_offset = LateStops[stop]
@@ -284,6 +296,10 @@ def timetable_clifton_to_phoenix(stop, day_type):
         while t < end - min_gap:
             normal_list.append(t + normal_offset)
             t += step
+
+    # Add the final real boundary time (always valid)
+    final_real = Directory[-1] + normal_offset
+    normal_list.append(final_real)
 
     if stop in LateStops:
         late_offset = LateStops[stop]
