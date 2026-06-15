@@ -307,25 +307,43 @@ def run_timetable_mode():
             "Toton Lane → Hucknall",
             "Phoenix Park → Clifton South",
             "Clifton South → Phoenix Park"
-        ]
+        ],
+        key="route_selector"
     )
 
     day_type = st.radio(
         "Select day type:",
         ["Weekdays", "Saturday", "Sunday"],
-        horizontal=True
+        horizontal=True,
+        key="timetable_day_type"
     )
 
     if route == "Hucknall → Toton Lane":
-        stop = st.selectbox("Choose your stop:", list(StopRefToton.keys()))
+        stop = st.selectbox(
+            "Choose your stop:",
+            list(StopRefToton.keys()),
+            key="timetable_stop_toton"
+        )
     elif route == "Toton Lane → Hucknall":
-        stop = st.selectbox("Choose your stop:", list(StopRefHucknall.keys()))
+        stop = st.selectbox(
+            "Choose your stop:",
+            list(StopRefHucknall.keys()),
+            key="timetable_stop_hucknall"
+        )
     elif route == "Phoenix Park → Clifton South":
-        stop = st.selectbox("Choose your stop:", list(StopRefClifton.keys()))
+        stop = st.selectbox(
+            "Choose your stop:",
+            list(StopRefClifton.keys()),
+            key="timetable_stop_clifton"
+        )
     else:
-        stop = st.selectbox("Choose your stop:", list(StopRefPhoenix.keys()))
+        stop = st.selectbox(
+            "Choose your stop:",
+            list(StopRefPhoenix.keys()),
+            key="timetable_stop_phoenix"
+        )
 
-    if st.button("Generate Timetable") and stop is not None:
+    if st.button("Generate Timetable", key="generate_timetable") and stop is not None:
         if route == "Hucknall → Toton Lane":
             timetable = timetable_hucknall_to_toton(stop, day_type)
         elif route == "Toton Lane → Hucknall":
@@ -451,10 +469,11 @@ def run_next_tram_mode():
     day_type = st.radio(
         "Select day type:",
         ["Weekdays", "Saturday", "Sunday"],
-        horizontal=True
+        horizontal=True,
+        key="nexttram_day_type"
     )
 
-    time_input = st.time_input("Enter time")
+    time_input = st.time_input("Enter time", key="nexttram_time")
     ChosenTime = time_input.hour * 60 + time_input.minute
 
     all_stops = sorted(set(
@@ -464,7 +483,7 @@ def run_next_tram_mode():
         list(StopSeed4.keys())
     ))
 
-    ChosenStop = st.selectbox("Choose your stop", all_stops)
+    ChosenStop = st.selectbox("Choose your stop", all_stops, key="nexttram_stop")
 
     if day_type == "Weekdays":
         TimeEarly = [360,375,392]
@@ -529,7 +548,7 @@ def run_next_tram_mode():
         TimeBracket4 = [362,421,1131,1388]
         Freq4 = [15,10,15]
 
-    if st.button("Show All Trams"):
+    if st.button("Show All Trams", key="show_trams"):
 
         # HUCKNALL DIRECTION (Toton → Hucknall)
         st.header("For Hucknall")
@@ -707,14 +726,12 @@ st.title("🚋 Nottingham Tram App")
 
 mode = st.radio(
     "Select mode:",
-    ["Full Timetables", "Next Tram (GTFS-style)"]
+    ["Full Timetables", "Next Tram (GTFS-style)"],
+    horizontal=True,
+    key="mode_selector"
 )
 
 if mode == "Full Timetables":
     run_timetable_mode()
 else:
     run_next_tram_mode()
-
-
-           
-
