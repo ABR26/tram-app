@@ -90,13 +90,11 @@ def timetable_hucknall_to_toton(stop, day_type):
 
     early_list, normal_list, late_list = [], [], []
 
-    # Early services (Forest-based)
     if stop in EarlyStops:
         early_offset = EarlyStops[stop]
         for t in EarlyStopTime:
             early_list.append(t + early_offset)
 
-    # Normal services (Hucknall-based)
     normal_offset = StopRefToton[stop]
     for i in range(len(Freq)):
         start = Directory[i]
@@ -107,7 +105,6 @@ def timetable_hucknall_to_toton(stop, day_type):
             normal_list.append(t + normal_offset)
             t += step
 
-    # Late services (Hucknall-based truncated)
     if stop in LateStops:
         late_offset = LateStops[stop]
         for t in LateStopTime:
@@ -154,13 +151,11 @@ def timetable_toton_to_hucknall(stop, day_type):
 
     early_list, normal_list, late_list = [], [], []
 
-    # Early services (Hucknall-based short)
     if stop in EarlyStops:
         early_offset = EarlyStops[stop]
         for t in EarlyStopTime:
             early_list.append(t + early_offset)
 
-    # Normal services (Toton-based)
     normal_offset = StopRefHucknall[stop]
     for i in range(len(Freq)):
         start = Directory[i]
@@ -171,7 +166,6 @@ def timetable_toton_to_hucknall(stop, day_type):
             normal_list.append(t + normal_offset)
             t += step
 
-    # Late services (Toton-based truncated)
     if stop in LateStops:
         late_offset = LateStops[stop]
         for t in LateStopTime:
@@ -216,13 +210,11 @@ def timetable_phoenix_to_clifton(stop, day_type):
 
     early_list, normal_list, late_list = [], [], []
 
-    # Early services (Forest-based)
     if stop in EarlyStops:
         early_offset = EarlyStops[stop]
         for t in EarlyStopTime:
             early_list.append(t + early_offset)
 
-    # Normal services (Phoenix-based)
     normal_offset = StopRefClifton[stop]
     for i in range(len(Freq)):
         start = Directory[i]
@@ -233,7 +225,6 @@ def timetable_phoenix_to_clifton(stop, day_type):
             normal_list.append(t + normal_offset)
             t += step
 
-    # Late services (Phoenix-based truncated)
     if stop in LateStops:
         late_offset = LateStops[stop]
         for t in LateStopTime:
@@ -279,13 +270,11 @@ def timetable_clifton_to_phoenix(stop, day_type):
 
     early_list, normal_list, late_list = [], [], []
 
-    # Early services (Phoenix-based short)
     if stop in EarlyStops:
         early_offset = EarlyStops[stop]
         for t in EarlyStopTime:
             early_list.append(t + early_offset)
 
-    # Normal services (Clifton-based)
     normal_offset = StopRefPhoenix[stop]
     for i in range(len(Freq)):
         start = Directory[i]
@@ -296,7 +285,6 @@ def timetable_clifton_to_phoenix(stop, day_type):
             normal_list.append(t + normal_offset)
             t += step
 
-    # Late services (Clifton-based truncated)
     if stop in LateStops:
         late_offset = LateStops[stop]
         for t in LateStopTime:
@@ -306,58 +294,57 @@ def timetable_clifton_to_phoenix(stop, day_type):
     return [(t // 60, t % 60) for t in SeedList]
 
 # =========================
-# UI
+# 1. FULL TIMETABLES MODE – FIRST TOOL
 # =========================
 
-st.subheader("Full Timetables")
+def run_timetable_mode():
+    st.subheader("Full Timetables")
 
-route = st.radio(
-    "Select a route:",
-    [
-        "Hucknall → Toton Lane",
-        "Toton Lane → Hucknall",
-        "Phoenix Park → Clifton South",
-        "Clifton South → Phoenix Park"
-    ]
-)
+    route = st.radio(
+        "Select a route:",
+        [
+            "Hucknall → Toton Lane",
+            "Toton Lane → Hucknall",
+            "Phoenix Park → Clifton South",
+            "Clifton South → Phoenix Park"
+        ]
+    )
 
-day_type = st.radio(
-    "Select day type:",
-    ["Weekdays", "Saturday", "Sunday"],
-    horizontal=True
-)
+    day_type = st.radio(
+        "Select day type:",
+        ["Weekdays", "Saturday", "Sunday"],
+        horizontal=True
+    )
 
-if route == "Hucknall → Toton Lane":
-    stop = st.selectbox("Choose your stop:", list(StopRefToton.keys()))
-elif route == "Toton Lane → Hucknall":
-    stop = st.selectbox("Choose your stop:", list(StopRefHucknall.keys()))
-elif route == "Phoenix Park → Clifton South":
-    stop = st.selectbox("Choose your stop:", list(StopRefClifton.keys()))
-else:
-    stop = st.selectbox("Choose your stop:", list(StopRefPhoenix.keys()))
-
-if st.button("Generate Timetable") and stop is not None:
     if route == "Hucknall → Toton Lane":
-        timetable = timetable_hucknall_to_toton(stop, day_type)
+        stop = st.selectbox("Choose your stop:", list(StopRefToton.keys()))
     elif route == "Toton Lane → Hucknall":
-        timetable = timetable_toton_to_hucknall(stop, day_type)
+        stop = st.selectbox("Choose your stop:", list(StopRefHucknall.keys()))
     elif route == "Phoenix Park → Clifton South":
-        timetable = timetable_phoenix_to_clifton(stop, day_type)
+        stop = st.selectbox("Choose your stop:", list(StopRefClifton.keys()))
     else:
-        timetable = timetable_clifton_to_phoenix(stop, day_type)
+        stop = st.selectbox("Choose your stop:", list(StopRefPhoenix.keys()))
 
-    formatted = [f"{h:02d}:{m:02d}" for h, m in timetable]
-    df = pd.DataFrame({"Arrival Time": formatted})
+    if st.button("Generate Timetable") and stop is not None:
+        if route == "Hucknall → Toton Lane":
+            timetable = timetable_hucknall_to_toton(stop, day_type)
+        elif route == "Toton Lane → Hucknall":
+            timetable = timetable_toton_to_hucknall(stop, day_type)
+        elif route == "Phoenix Park → Clifton South":
+            timetable = timetable_phoenix_to_clifton(stop, day_type)
+        else:
+            timetable = timetable_clifton_to_phoenix(stop, day_type)
 
-    st.success(f"Timetable for **{stop}** on **{route}** ({day_type})")
-    st.table(df)
+        formatted = [f"{h:02d}:{m:02d}" for h, m in timetable]
+        df = pd.DataFrame({"Arrival Time": formatted})
 
+        st.success(f"Timetable for **{stop}** on **{route}** ({day_type})")
+        st.table(df)
 
 # =========================================================
 # 2. NEXT TRAM (GTFS-STYLE) MODE – SECOND TOOL
 # =========================================================
 
-# Base GTFS stop seeds (directional)
 StopSeed = {
     "Toton":0,"Inham Road":2,"Eskdale Drive":4,"Bramcote Lane":6,"Cator lane":7,
     "High Road Central College":9,"Chilwell Road":10,"Beeston Centre":12,"Middle Street":14,
@@ -479,66 +466,65 @@ def run_next_tram_mode():
 
     ChosenStop = st.selectbox("Choose your stop", all_stops)
 
-    # Map full-timetable configs onto GTFS engine per corridor/day type
     if day_type == "Weekdays":
-        TimeEarly = [360,375,392]                 # Toton → Hucknall
+        TimeEarly = [360,375,392]
         TimeLate = [1460,1476,1490,1505]
         TimeBracket = [361,421,615,908,1155,1265,1445]
         Freq = [15,7,10,7,10,15]
 
-        TimeEarly2 = [316,331,345,355,370]        # Hucknall → Toton
+        TimeEarly2 = [316,331,345,355,370]
         TimeLate2 = [1440,1455]
         TimeBracket2 = [364,420,599,900,1139,1260,1440]
         Freq2 = [15,7,10,7,10,15]
 
-        TimeEarly3 = [327,342,356,363]            # Phoenix → Clifton
+        TimeEarly3 = [327,342,356,363]
         TimeLate3 = [1440,1455]
         TimeBracket3 = [364,420,610,900,1139,1260,1440]
         Freq3 = [15,7,10,7,10,15]
 
-        TimeEarly4 = [368]                        # Clifton → Phoenix
+        TimeEarly4 = [368]
         TimeLate4 = [1463,1473,1508]
         TimeBracket4 = [364,420,601,900,1139,1260,1440]
         Freq4 = [15,7,10,7,10,15]
 
     elif day_type == "Saturday":
-        TimeEarly = [360,375,392]                 # Toton → Hucknall
+        TimeEarly = [360,375,392]
         TimeLate = [1445,1460,1476,1490,1505]
         TimeBracket = [361,421,601,1155,1275,1445]
         Freq = [15,10,7,10,15]
 
-        TimeEarly2 = [316,331,345,355,370,385]    # Hucknall → Toton
+        TimeEarly2 = [316,331,345,355,370,385]
         TimeLate2 = [1440,1455]
         TimeBracket2 = [364,426,606,1139,1260,1440]
         Freq2 = [15,10,7,10,15]
 
-        TimeEarly3 = [327,342,356,363,378]        # Phoenix → Clifton
+        TimeEarly3 = [327,342,356,363,378]
         TimeLate3 = [1440,1455]
         TimeBracket3 = [364,438,617,1150,1262,1440]
         Freq3 = [15,10,7,10,15]
 
-        TimeEarly4 = [368,383]                    # Clifton → Phoenix
+        TimeEarly4 = [368,383]
         TimeLate4 = [1448,1463,1473,1488]
         TimeBracket4 = [362,425,606,1141,1266,1448]
         Freq4 = [15,10,7,10,15]
 
-    else:  # Sunday
-        TimeEarly = [360,375,392]                 # Toton → Hucknall
+    else:
+        TimeEarly = [360,375,392]
         TimeLate = [1385,1400,1415,1430,1445]
         TimeBracket = [361,425,1145,1375]
         Freq = [15,10,15]
 
-        TimeEarly2 = [316,331,345,355,370,385]    # Hucknall → Toton
+        TimeEarly2 = [316,331,345,355,370,385]
         TimeLate2 = [1380,1395]
         TimeBracket2 = [364,420,1140,1380]
         Freq2 = [15,10,15]
 
-        TimeEarly3 = [327,342,356,363,378]        # Phoenix → Clifton
+        TimeEarly3 = [327,342,356,363,378]
         TimeLate3 = [1380,1395]
         TimeBracket3 = [364,422,1142,1380]
         Freq3 = [15,10,15]
 
-        TimeEarly4 = [368,383]                    # Clifton → Phoenix
+        TimeEarly4 = [368,383]
         TimeLate4 = [1388,1403,1413,1428]
         TimeBracket4 = [362,421,1131,1388]
         Freq4 = [15,10,15]
@@ -728,6 +714,7 @@ if mode == "Full Timetables":
     run_timetable_mode()
 else:
     run_next_tram_mode()
+
 
            
 
