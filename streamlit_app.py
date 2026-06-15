@@ -101,7 +101,7 @@ def timetable_hucknall_to_toton(stop, day_type):
         end = Directory[i+1]
         step = Freq[i]
         t = start
-        while t <= end - (min_gap // 2):
+        while t < end - min_gap:
             normal_list.append(t + normal_offset)
             t += step
 
@@ -162,7 +162,7 @@ def timetable_toton_to_hucknall(stop, day_type):
         end = Directory[i+1]
         step = Freq[i]
         t = start
-        while t <= end - (min_gap // 2):
+        while t < end - min_gap:
             normal_list.append(t + normal_offset)
             t += step
 
@@ -221,7 +221,7 @@ def timetable_phoenix_to_clifton(stop, day_type):
         end = Directory[i+1]
         step = Freq[i]
         t = start
-        while t <= end - (min_gap // 2):
+        while t < end - min_gap:
             normal_list.append(t + normal_offset)
             t += step
 
@@ -281,7 +281,7 @@ def timetable_clifton_to_phoenix(stop, day_type):
         end = Directory[i+1]
         step = Freq[i]
         t = start
-        while t <= end - (min_gap // 2):
+        while t < end - min_gap:
             normal_list.append(t + normal_offset)
             t += step
 
