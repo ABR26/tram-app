@@ -1,11 +1,12 @@
-#VERSION 2.3# 10-06-26#
+# VERSION 2.4  15-06-26
 import streamlit as st
 import pandas as pd
-##Variable fix to remove "throwing the last time" bug 12/6/26##
-min_gap=7
-# =========================================================
-# 1. FULL TIMETABLE TOOL (HUCK–TOT, TOT–HUCK, PHOENIX–CLIFTON, CLIFTON–PHOENIX)
-# =========================================================
+
+min_gap = 7
+
+# =========================
+# Stop reference dictionaries
+# =========================
 
 # Hucknall → Toton
 StopRefToton = {
@@ -49,9 +50,11 @@ StopRefPhoenix = {
     "Clifton Centre":5,"Holy Trinity":3,"Summerwood Lane":1,"Clifton South":0
 }
 
-def timetable_hucknall_to_toton(stop, day_type):
-    StopChoice = StopRefToton[stop]
+# =========================
+# Timetable engines
+# =========================
 
+def timetable_hucknall_to_toton(stop, day_type):
     LateStops = {
         "Hucknall":0,"Butlers Hill":2,"Moor Bridge":5,"Bulwell Forest":7,"Bulwell":8,
         "Highbury Vale North East":10,"David Lane":12,"Basford":13,"Wilkinson Street":15,"Radford Road":17,
@@ -85,29 +88,36 @@ def timetable_hucknall_to_toton(stop, day_type):
     else:
         return []
 
-    SeedList = []
+    early_list, normal_list, late_list = [], [], []
 
+    # Early services (Forest-based)
     if stop in EarlyStops:
-        SeedList.extend(EarlyStopTime)
+        early_offset = EarlyStops[stop]
+        for t in EarlyStopTime:
+            early_list.append(t + early_offset)
 
+    # Normal services (Hucknall-based)
+    normal_offset = StopRefToton[stop]
     for i in range(len(Freq)):
         start = Directory[i]
         end = Directory[i+1]
         step = Freq[i]
         t = start
-        while t < end-min_gap:
-            SeedList.append(t)
+        while t < end - min_gap:
+            normal_list.append(t + normal_offset)
             t += step
 
+    # Late services (Hucknall-based truncated)
     if stop in LateStops:
-        SeedList.extend(LateStopTime)
+        late_offset = LateStops[stop]
+        for t in LateStopTime:
+            late_list.append(t + late_offset)
 
-    Final = [t + StopChoice for t in SeedList]
-    return [(t // 60, t % 60) for t in Final]
+    SeedList = sorted(early_list + normal_list + late_list)
+    return [(t // 60, t % 60) for t in SeedList]
+
 
 def timetable_toton_to_hucknall(stop, day_type):
-    StopChoice = StopRefHucknall[stop]
-
     EarlyStops = {
         "Hucknall":32,"Butlers Hill":30,"Moor Bridge":27,"Bulwell Forest":26,"Bulwell":24,
         "Highbury Vale North East":22,"David Lane":20,"Basford":19,"Wilkinson Street":16,"Shipstone Street":15,"Beaconsfield Street":13,
@@ -142,29 +152,36 @@ def timetable_toton_to_hucknall(stop, day_type):
     else:
         return []
 
-    SeedList = []
+    early_list, normal_list, late_list = [], [], []
 
+    # Early services (Hucknall-based short)
     if stop in EarlyStops:
-        SeedList.extend(EarlyStopTime)
+        early_offset = EarlyStops[stop]
+        for t in EarlyStopTime:
+            early_list.append(t + early_offset)
 
+    # Normal services (Toton-based)
+    normal_offset = StopRefHucknall[stop]
     for i in range(len(Freq)):
         start = Directory[i]
         end = Directory[i+1]
         step = Freq[i]
         t = start
-        while t < end-min_gap:
-            SeedList.append(t)
+        while t < end - min_gap:
+            normal_list.append(t + normal_offset)
             t += step
 
+    # Late services (Toton-based truncated)
     if stop in LateStops:
-        SeedList.extend(LateStopTime)
+        late_offset = LateStops[stop]
+        for t in LateStopTime:
+            late_list.append(t + late_offset)
 
-    Final = [t + StopChoice for t in SeedList]
-    return [(t // 60, t % 60) for t in Final]
+    SeedList = sorted(early_list + normal_list + late_list)
+    return [(t // 60, t % 60) for t in SeedList]
+
 
 def timetable_phoenix_to_clifton(stop, day_type):
-    StopChoice = StopRefClifton[stop]
-
     LateStops = {
         "Phoenix Park":0,"Cinderhill":1,"Highbury Vale South West":2,"David Lane":4,
         "Basford":5,"Wilkinson Street":8,"Radford Road":10,"Hyson Green Market":12,"The Forest":14,
@@ -197,29 +214,36 @@ def timetable_phoenix_to_clifton(stop, day_type):
     else:
         return []
 
-    SeedList = []
+    early_list, normal_list, late_list = [], [], []
 
+    # Early services (Forest-based)
     if stop in EarlyStops:
-        SeedList.extend(EarlyStopTime)
+        early_offset = EarlyStops[stop]
+        for t in EarlyStopTime:
+            early_list.append(t + early_offset)
 
+    # Normal services (Phoenix-based)
+    normal_offset = StopRefClifton[stop]
     for i in range(len(Freq)):
         start = Directory[i]
         end = Directory[i+1]
         step = Freq[i]
         t = start
-        while t < end-min_gap:
-            SeedList.append(t)
+        while t < end - min_gap:
+            normal_list.append(t + normal_offset)
             t += step
 
+    # Late services (Phoenix-based truncated)
     if stop in LateStops:
-        SeedList.extend(LateStopTime)
+        late_offset = LateStops[stop]
+        for t in LateStopTime:
+            late_list.append(t + late_offset)
 
-    Final = [t + StopChoice for t in SeedList]
-    return [(t // 60, t % 60) for t in Final]
+    SeedList = sorted(early_list + normal_list + late_list)
+    return [(t // 60, t % 60) for t in SeedList]
+
 
 def timetable_clifton_to_phoenix(stop, day_type):
-    StopChoice = StopRefPhoenix[stop]
-
     LateStops = {
         "Shipstone Street":38,"Beaconsfield Street":36,"Noel Street":34,"The Forest":32,
         "High School":30,"Nottingham Trent University":27,"Royal Centre":25,"Old Market Square":24,
@@ -253,72 +277,81 @@ def timetable_clifton_to_phoenix(stop, day_type):
     else:
         return []
 
-    SeedList = []
+    early_list, normal_list, late_list = [], [], []
 
+    # Early services (Phoenix-based short)
     if stop in EarlyStops:
-        SeedList.extend(EarlyStopTime)
+        early_offset = EarlyStops[stop]
+        for t in EarlyStopTime:
+            early_list.append(t + early_offset)
 
+    # Normal services (Clifton-based)
+    normal_offset = StopRefPhoenix[stop]
     for i in range(len(Freq)):
         start = Directory[i]
         end = Directory[i+1]
         step = Freq[i]
         t = start
-        while t < end-min_gap:
-            SeedList.append(t)
+        while t < end - min_gap:
+            normal_list.append(t + normal_offset)
             t += step
 
+    # Late services (Clifton-based truncated)
     if stop in LateStops:
-        SeedList.extend(LateStopTime)
+        late_offset = LateStops[stop]
+        for t in LateStopTime:
+            late_list.append(t + late_offset)
 
-    Final = [t + StopChoice for t in SeedList]
-    return [(t // 60, t % 60) for t in Final]
+    SeedList = sorted(early_list + normal_list + late_list)
+    return [(t // 60, t % 60) for t in SeedList]
 
-def run_timetable_mode():
-    st.subheader("Full Timetables")
+# =========================
+# UI
+# =========================
 
-    route = st.radio(
-        "Select a route:",
-        [
-            "Hucknall → Toton Lane",
-            "Toton Lane → Hucknall",
-            "Phoenix Park → Clifton South",
-            "Clifton South → Phoenix Park"
-        ]
-    )
+st.subheader("Full Timetables")
 
-    day_type = st.radio(
-        "Select day type:",
-        ["Weekdays", "Saturday", "Sunday"],
-        horizontal=True
-    )
+route = st.radio(
+    "Select a route:",
+    [
+        "Hucknall → Toton Lane",
+        "Toton Lane → Hucknall",
+        "Phoenix Park → Clifton South",
+        "Clifton South → Phoenix Park"
+    ]
+)
 
-    stop = None
-    timetable = []
+day_type = st.radio(
+    "Select day type:",
+    ["Weekdays", "Saturday", "Sunday"],
+    horizontal=True
+)
 
+if route == "Hucknall → Toton Lane":
+    stop = st.selectbox("Choose your stop:", list(StopRefToton.keys()))
+elif route == "Toton Lane → Hucknall":
+    stop = st.selectbox("Choose your stop:", list(StopRefHucknall.keys()))
+elif route == "Phoenix Park → Clifton South":
+    stop = st.selectbox("Choose your stop:", list(StopRefClifton.keys()))
+else:
+    stop = st.selectbox("Choose your stop:", list(StopRefPhoenix.keys()))
+
+if st.button("Generate Timetable") and stop is not None:
     if route == "Hucknall → Toton Lane":
-        stop = st.selectbox("Choose your stop:", list(StopRefToton.keys()))
+        timetable = timetable_hucknall_to_toton(stop, day_type)
     elif route == "Toton Lane → Hucknall":
-        stop = st.selectbox("Choose your stop:", list(StopRefHucknall.keys()))
+        timetable = timetable_toton_to_hucknall(stop, day_type)
     elif route == "Phoenix Park → Clifton South":
-        stop = st.selectbox("Choose your stop:", list(StopRefClifton.keys()))
-    elif route == "Clifton South → Phoenix Park":
-        stop = st.selectbox("Choose your stop:", list(StopRefPhoenix.keys()))
+        timetable = timetable_phoenix_to_clifton(stop, day_type)
+    else:
+        timetable = timetable_clifton_to_phoenix(stop, day_type)
 
-    if st.button("Generate Timetable") and stop is not None:
-        if route == "Hucknall → Toton Lane":
-            timetable = timetable_hucknall_to_toton(stop, day_type)
-        elif route == "Toton Lane → Hucknall":
-            timetable = timetable_toton_to_hucknall(stop, day_type)
-        elif route == "Phoenix Park → Clifton South":
-            timetable = timetable_phoenix_to_clifton(stop, day_type)
-        elif route == "Clifton South → Phoenix Park":
-            timetable = timetable_clifton_to_phoenix(stop, day_type)
+    formatted = [f"{h:02d}:{m:02d}" for h, m in timetable]
+    df = pd.DataFrame({"Arrival Time": formatted})
 
-        formatted = [f"{h:02d}:{m:02d}" for h, m in timetable]
-        df = pd.DataFrame({"Arrival Time": formatted})
+    st.success(f"Timetable for **{stop}** on **{route}** ({day_type})")
+    st.table(df)
 
-        st.success(f"Timetable for **{stop}** on **{route}** ({day_type})")
-        st.table(df)
 
 # =========================================================
 # 2. NEXT TRAM (GTFS-STYLE) MODE – SECOND TOOL
