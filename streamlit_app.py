@@ -71,7 +71,7 @@ def timetable_hucknall_to_toton(stop, day_type):
     }
 
     if day_type == "Weekdays":
-        LateStopTime = [1440, 1455]
+        LateStopTime = [1455]
         EarlyStopTime = [316, 331, 345, 355, 370]
         Directory = [364, 420, 599, 900, 1139, 1260, 1440]
         Freq = [15, 7, 10, 7, 10, 15]
