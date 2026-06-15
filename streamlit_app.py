@@ -137,7 +137,7 @@ def timetable_toton_to_hucknall(stop, day_type):
         Directory = [361,421,615,908,1155,1265,1445]
         Freq = [15,7,10,7,10,15]
     elif day_type == "Saturday":
-        EarlyStopTime = [360,375,392]
+        EarlyStopTime = [360,375]
         LateStopTime = [1445,1460,1476,1490,1505]
         Directory = [361,421,601,1155,1275,1445]
         Freq = [15,10,7,10,15]
