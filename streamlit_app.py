@@ -738,11 +738,11 @@ def run_next_tram_mode():
 # 3. TOP-LEVEL MODE SELECTOR
 # =========================================================
 
-st.title("🚋 Nottingham Tram App")
+st.title("🚋 TransitSeed NET Tram Demo")
 
 mode = st.radio(
     "Select mode:",
-    ["Full Timetables", "Next Tram (GTFS-style)"],
+    ["Full Timetables", "Next Tram (GTFS-static)"],
     horizontal=True,
     key="mode_selector"
 )
