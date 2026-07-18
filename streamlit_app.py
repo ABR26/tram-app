@@ -1,6 +1,8 @@
-# VERSION 2.4  15-06-26
+# streamlit_app.py
+# VERSION 2.4  15-06-26  (merged with Journey Planner)
 import streamlit as st
 import pandas as pd
+from datetime import datetime, time
 
 min_gap = 7
 
@@ -735,19 +737,176 @@ def run_next_tram_mode():
                 break
 
 # =========================================================
-# 3. TOP-LEVEL MODE SELECTOR
+# 3. JOURNEY PLANNER MODE – THIRD TOOL (integrated)
+# =========================================================
+
+def render_journey_planner():
+    st.header("NET Tram Journey Planner")
+
+    # --- USER INPUTS ---
+    Start = st.selectbox("Choose your journey start", [
+        "Toton Lane", "Inham Road", "Eskdale Drive", "Bramcote Lane", "Cator Lane", "High Road Central College", "Chilwell Road", "Beeston Centre",
+        "Middle Street", "University Boulevard", "University of Nottingham", "QMC", "Gregory Street", "NG2", "Meadows Way West", "Nottingham Railway Station",
+        "Lace Market", "Old Market Square", "Royal Centre", "Nottingham Trent University", "High School", "The Forest", "Noel Street", "Beaconsfield Street",
+        "Shipstone Street", "Wilkinson Street", "Radford Road", "Hyson Green Market", "Basford", "David Lane", "Highbury Vale North East", "Bulwell", "Bulwell Forest", 
+        "Moor Bridge", "Butlers Hill", "Hucknall", "Clifton South", "Summerwood Lane", "Holy Trinity", "Clifton Centre", "Rivergreen", "Southchurch Drive North", 
+        "Ruddington Lane","Compton Acres", "Wilford Lane", "Wilford Village", "Meadows Embankment", "Queens Walk", "Highbury Vale South West", "Cinderhill", 
+        "Phoenix Park",
+    ], key="planner_start")
+
+    End = st.selectbox("Choose your journey end", [
+        "Toton Lane", "Inham Road", "Eskdale Drive", "Bramcote Lane", "Cator Lane", "High Road Central College", "Chilwell Road", "Beeston Centre",
+        "Middle Street", "University Boulevard", "University of Nottingham", "QMC", "Gregory Street", "NG2", "Meadows Way West", "Nottingham Railway Station",
+        "Lace Market", "Old Market Square", "Royal Centre", "Nottingham Trent University", "High School", "The Forest", "Noel Street", "Beaconsfield Street",
+        "Shipstone Street", "Wilkinson Street", "Radford Road", "Hyson Green Market", "Basford", "David Lane", "Highbury Vale North East", "Bulwell", "Bulwell Forest", 
+        "Moor Bridge", "Butlers Hill", "Hucknall", "Clifton South", "Summerwood Lane", "Holy Trinity", "Clifton Centre", "Rivergreen", "Southchurch Drive North", 
+        "Ruddington Lane","Compton Acres", "Wilford Lane", "Wilford Village", "Meadows Embankment", "Queens Walk", "Highbury Vale South West", "Cinderhill", 
+        "Phoenix Park",
+    ], key="planner_end")
+
+    Hub = st.selectbox("Choose your change stop  || Railway Station | Wilkinson Street | David Lane | None || ", [
+        "None","Nottingham Railway Station","David Lane","Wilkinson Street",
+    ], key="planner_hub")
+
+    # --- ORIGINAL DICTIONARIES (kept local to planner) ---
+    TotHuckNorth = {
+        "Toton Lane":0,"Inham Road":2,"Eskdale Drive":4,"Bramcote Lane":6,"Cator Lane":7,"High Road Central College":9,"Chilwell Road":10,
+        "Beeston Centre":12,"Middle Street":14, "University Boulevard":16, "University of Nottingham":20,"QMC":22,"Gregory Street":24,
+        "NG2":26,"Meadows Way West":28,"Nottingham Railway Station":31,"Lace Market":33,"Old Market Square":34,"Royal Centre":35,
+        "Nottingham Trent University":37,"High School":40,"The Forest":42,"Noel Street":43,"Beaconsfield Street":44,"Shipstone Street":46,
+        "Wilkinson Street":47,"Basford":50,"David Lane":51,"Highbury Vale North East":53,"Bulwell":55,"Bulwell Forest":57,"Moor Bridge":58,
+        "Butlers Hill":61,"Hucknall":63,
+    }
+
+    TotHuckSouth = {
+        "Hucknall":0,"Butlers Hill":2,"Moor Bridge":5,"Bulwell Forest":7,"Bulwell":8,"Highbury Vale North East":10,"David Lane":12,"Basford":13,
+        "Wilkinson Street":17,"Radford Road":17,"Hyson Green Market":19,"The Forest":21,"High School":23,"Nottingham Trent University":25,"Royal Centre":27,
+        "Old Market Square":28,"Lace Market":30,"Nottingham Railway Station":32,"Meadows Way West":34,"NG2":36,"Gregory Street":38,"QMC":40,
+        "University of Nottingham":43,"University Boulevard":46,"Middle Street":48,"Beeston Centre":50,"Chilwell Road":52,"High Road Central College":53,
+        "Cator Lane":55,"Bramcote Lane":57,"Eskdale Drive":59,"Inham Road":61,"Toton Lane":63,
+    }
+
+    ClifPhoNorth = {
+        "Clifton South":0,"Summerwood Lane":1,"Holy Trinity":3,"Clifton Centre":5,"Rivergreen":6,"Southchurch Drive North":7,"Ruddington Lane":10,
+        "Compton Acres":11,"Wilford Lane":13,"Wilford Village":16,"Meadows Embankment":18,"Queens Walk":19,"Nottingham Railway Station":21,"Lace Market":23,
+        "Old Market Square":24,"Royal Centre":25,"Nottingham Trent University":27,"High School":30,"The Forest":32,"Noel Street":34,"Beaconsfield Street":37,
+        "Shipstone Street":38,"Wilkinson Street":39,"Basford":41,"David Lane":42,"Highbury Vale South West":43,"Cinderhill":44,"Phoenix Park":46,
+    }
+
+    ClifPhoSouth = {
+        "Phoenix Park":0,"Cinderhill":1,"Highbury Vale South West":2,"David Lane":4,"Basford":5,"Wilkinson Street":8,"Radford Road":10,"Hyson Green Market":12,
+        "The Forest":14,"High School":16,"Nottingham Trent University":18,"Royal Centre":20,"Old Market Square":21,"Lace Market":22,"Nottingham Railway Station":25,
+        "Queens Walk":27,"Meadows Embankment":28,"Wilford Village":29,"Wilford Lane":32,"Compton Acres":34,"Ruddington Lane":35,"Southchurch Drive North":38,
+        "Rivergreen":39,"Clifton Centre":40,"Holy Trinity":43,"Summerwood Lane":44,"Clifton South":46,
+    }
+
+    Exception1=("Shipstone Street", "Beaconsfield Street", "Noel Street")
+    Exception2=("Radford Road","Hyson Green Market")
+
+    HEADWAYS = {
+        "early":7.5,"peak":3.5,"offpeak":5.0,"rushhour":3.5,
+        "evening":5,"late":7.5,"No service":0
+    }
+
+    # --- HEADWAY FUNCTION ---
+    def get_headway(now=None):
+        now = now or datetime.now().time()
+        if time(6,0) <= now <= time(7,0):
+            return HEADWAYS["early"]
+        elif time(7,0) <= now <= time(10,0):
+            return HEADWAYS["peak"]
+        elif time(10,0) <= now <= time(15,0):
+            return HEADWAYS["offpeak"]
+        elif time(15,0) <= now <= time(19,15):
+            return HEADWAYS["rushhour"]
+        elif time(19,15) <= now <= time(21,5):
+            return HEADWAYS["evening"]
+        elif time(21,5) <= now <= time(23,59):
+            return HEADWAYS["late"]
+        else:
+            return HEADWAYS["No service"]
+
+    if Hub == Start or Hub == End:
+        HeadwayNow = 0
+    else:
+        HeadwayNow = get_headway()
+
+    # --- ORIGINAL LOGIC PRESERVED ---
+    def direct(Start, End):
+        for line in (TotHuckNorth, TotHuckSouth, ClifPhoNorth, ClifPhoSouth):
+            if Start in line and End in line:
+                return abs(line[End] - line[Start])
+        return None
+
+    def hub_route(Start, End, Hub):
+        combos = [
+            (TotHuckNorth, ClifPhoSouth),  # 1
+            (TotHuckNorth, ClifPhoNorth),  # 2
+            (ClifPhoNorth, TotHuckNorth),  # 3
+            (ClifPhoNorth, TotHuckSouth),  # 4
+            (TotHuckSouth, ClifPhoNorth),  # 5
+            (TotHuckSouth, ClifPhoSouth),  # 6
+            (ClifPhoSouth, TotHuckNorth),  # 7
+            (ClifPhoSouth, TotHuckSouth)   # 8
+        ]
+
+        for A, B in combos:
+            if Start in A and Hub in A and Hub in B and End in B:
+                t1 = abs(A[Start] - A[Hub])
+                t2 = abs(B[Hub] - B[End])
+                total = t1 + t2
+                return total, t1, t2
+
+        return None, None, None
+
+    # --- OUTPUT ---
+    if Hub == "None":
+        total = direct(Start, End)
+        if total is None:
+            st.error("No direct route found.")
+        else:
+            st.success(f"Journey time is **{total} minutes**.")
+
+    if Hub == "Nottingham Railway Station" and Start in Exception1 and End in Exception2:
+        st.error("Route not possible")
+    elif Hub == "David Lane" and Start in Exception2 and End in Exception1:
+        st.error("Route not possible")
+    elif Hub == "Wilkinson Street" and Start in Exception2 and End in Exception1:
+        st.error("Route not possible")
+    else:
+        base_total, t1, t2 = hub_route(Start, End, Hub)
+        if base_total is None:
+            # no hub route found; do nothing (direct case handled above)
+            pass
+        else:
+            total_with_headway = base_total + HeadwayNow
+
+            st.success(f"Total journey time including change at **{Hub}** is **{total_with_headway} minutes**.")
+
+            st.info(
+                f"**Breakdown:**\n"
+                f"- From Start to change stop ({Hub}): {t1} minutes\n"
+                f"- From change stop to Destination: {t2} minutes\n"
+                f"- **Estimated wait at change stop:** {HeadwayNow} minutes\n"
+                f"- **Total journey time:** {base_total+HeadwayNow} minutes"
+            )
+
+# =========================================================
+# 4. TOP-LEVEL MODE SELECTOR
 # =========================================================
 
 st.title("🚋 TransitSeed NET Tram Demo")
 
 mode = st.radio(
     "Select mode:",
-    ["Full Timetables", "Next Tram (GTFS-static)"],
+    ["Full Timetables", "Next Tram (GTFS-static)", "Journey Planner"],
     horizontal=True,
     key="mode_selector"
 )
 
 if mode == "Full Timetables":
     run_timetable_mode()
-else:
+elif mode == "Next Tram (GTFS-static)":
     run_next_tram_mode()
+else:
+    render_journey_planner()
